@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>主持人主控台</title>
+  <title>主持人控台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === 全域設定 === */
@@ -21,88 +21,71 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: center; /* 讓內容垂直置中 */
+        justify-content: center;
     }
 
-    /* === 登入卡片專用樣式 (模仿來賓簽到頁) === */
+    /* === 登入卡片 === */
     #login-box { 
         background: white;
         padding: 40px 30px;
-        border-radius: 24px;       /* 大圓角 */
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06); /* 柔和陰影 */
-        max-width: 450px;          /* 卡片寬度限制 */
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        max-width: 450px;
         width: 100%;
-        margin: 0 auto;            /* 水平置中 */
+        margin: 0 auto;
         text-align: center;
     }
-
-    /* 學校標題 */
-    .school-header {
-        font-size: 1.1rem;
-        color: #6c757d;
-        font-weight: 700;
-        margin-bottom: 5px;
-        letter-spacing: 1px;
-    }
-
-    /* 登入標題 (字體縮小) */
-    .login-title {
-        font-size: 1.5rem; /* 從原本預設 h2 縮小 */
-        font-weight: 800;
-        color: #333;
-        margin-bottom: 30px;
-    }
-
-    /* 輸入框美化 (淺灰底色) */
-    .input-custom {
-        background-color: #f0f2f5;
-        border: none;
-        border-radius: 12px;
-        padding: 15px;
-        font-size: 1rem;
-        text-align: center;
-    }
-    .input-custom:focus {
-        background-color: #e4e6e9;
-        box-shadow: none;
-        outline: none;
-    }
-
-    /* 按鈕美化 */
-    .btn-login {
-        background: #000;
-        color: white;
-        border-radius: 12px;
-        padding: 12px;
-        font-weight: bold;
-        font-size: 1.1rem;
-        width: 100%;
-        margin-top: 20px;
-    }
-    .btn-login:hover { background: #333; color: white; }
-
-    /* === 主控台樣式 (登入後) === */
-    #main-app { display: none; width: 100%; } /* 登入後佔滿寬度 */
+    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; text-align: center;}
+    .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
+    .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
+    .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
-    .event-main-title {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #212529;
-        text-align: center;
-        margin: 10px 0 25px 0;
-        line-height: 1.2;
+    /* === 主控台 === */
+    #main-app { display: none; width: 100%; }
+    .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
+    
+    /* === 卡片樣式核心 === */
+    .row-card { 
+        background: white; 
+        border-radius: 12px; 
+        padding: 15px; 
+        margin-bottom: 12px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        border-left: 8px solid transparent; /* 加寬左側邊條 */
+        transition: border-color 0.3s ease, background-color 0.3s ease; 
     }
-
-    .row-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid transparent; transition: all 0.3s ease; }
-    .pinned { border-left-color: #ffc107; background: #fffdf5; }
-    .done { opacity: 0.6; background: #e9ecef; }
+    
+    /* === 權重顏色系統 === */
+    .p-0 { border-left-color: transparent; } /* 無 */
+    .p-1 { border-left-color: #198754; background: #f0fff4; } /* 綠 (關注) */
+    .p-2 { border-left-color: #ffc107; background: #fffdf5; } /* 黃 (重要) */
+    .p-3 { border-left-color: #dc3545; background: #fff5f5; } /* 紅 (緊急) */
+    
+    /* 已完成樣式 */
+    .done { opacity: 0.6; background: #e9ecef !important; border-left-color: #adb5bd !important; }
     .done .name { text-decoration: line-through; color: #777; }
+
     .time { color: #888; font-size: 14px; width: 55px; }
     .info { flex: 1; padding: 0 10px; }
     .job { font-size: 15px; color: #666; display: block; }
     .name { font-size: 24px; font-weight: bold; color: #000; display: block; }
-    .btn-pin { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ddd; background: white; color: #ddd; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;}
-    .btn-pin.active { color: #ffc107; border-color: #ffc107; }
+    
+    /* 星星按鈕 (會變色) */
+    .btn-pin { 
+        width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ddd; background: white; 
+        color: #ddd; font-size: 20px; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; margin-right: 8px; transition: all 0.2s;
+    }
+    .btn-pin:hover { background: #f8f9fa; }
+    
+    /* 星星顏色狀態 */
+    .btn-pin.s-1 { color: #198754; border-color: #198754; } /* 綠星 */
+    .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; } /* 黃星 */
+    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; font-weight: bold; transform: scale(1.1); } /* 紅星 */
+
     .btn-ok { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; }
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; cursor: pointer; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
@@ -113,10 +96,8 @@
   
   <div id="login-box">
     <div class="school-header">北屯區建功國小</div>
-    
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
-    <div class="login-title">主持人登入</div>
-    
+    <div class="login-title">管控端登入</div>
     <input type="password" id="pwd" class="form-control input-custom" placeholder="請輸入密碼">
     <button onclick="login()" class="btn btn-login">進入系統</button>
   </div>
@@ -140,21 +121,17 @@
   // ⚠️⚠️⚠️ 這裡換成你的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
-  var PASSWORD = ""; var timer = null; var localData = []; 
+  var PASSWORD = ""; 
+  var timer = null; 
+  var localData = []; 
+  var debounceTimer = null; // 防手震計時器
 
   function login() {
     PASSWORD = document.getElementById('pwd').value;
-    // 隱藏登入卡片，顯示主畫面
-    var loginBox = document.getElementById('login-box');
+    document.getElementById('login-box').style.display = 'none';
     var mainApp = document.getElementById('main-app');
-    var container = document.querySelector('.container');
-
-    loginBox.style.display = 'none';
     mainApp.style.display = 'block';
-    
-    // 登入後取消垂直置中，讓內容從上方開始排列
-    container.style.justifyContent = 'flex-start';
-    
+    document.querySelector('.container').style.justifyContent = 'flex-start';
     fetchData(); startTimer();
   }
 
@@ -167,53 +144,102 @@
     .then(res => res.json())
     .then(json => {
       if(json.status === "error") { alert(json.message); location.reload(); return; }
-      localData = json.data; render(localData);
+      localData = json.data; 
+      render(localData); // 只有這裡會進行「大洗牌」排序
       if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
 
   function render(data) {
-    var list = document.getElementById('list'); list.innerHTML = "";
+    var list = document.getElementById('list'); 
+    list.innerHTML = "";
+    
+    // === 核心排序邏輯 ===
     data.sort((a, b) => {
+      // 1. 先比狀態 (待介紹優先)
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-      var pA = (a.isPinned === "TRUE" || a.isPinned === true);
-      var pB = (b.isPinned === "TRUE" || b.isPinned === true);
-      if (pA !== pB) return pA ? -1 : 1;
-      return 0; 
+      // 2. 再比權重 (3 > 2 > 1 > 0)
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      // 3. 最後維持原順序 (rowIndex)
+      return a.rowIndex - b.rowIndex; 
     });
+
     if(data.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有訪客</div>"; return; }
+    
     data.forEach(item => {
       var isDone = item.status === "已介紹";
-      var isPinned = (item.isPinned === "TRUE" || item.isPinned === true);
-      var cls = `row-card ${isDone ? 'done' : ''} ${isPinned && !isDone ? 'pinned' : ''}`;
+      var pLevel = item.priority || 0; // 權重 0~3
+      
+      var cls = `row-card p-${pLevel} ${isDone ? 'done' : ''}`; // p-0, p-1... 控制顏色
       var timeParts = item.time.split(":");
       var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
 
       var html = `
-        <div class="${cls}" id="row-${item.rowIndex}">
-          <div class="time">${shortTime}</div>  <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
+        <div class="${cls}" id="card-${item.rowIndex}">
+          <div class="time">${shortTime}</div>  
+          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
           <div class="d-flex align-items-center">
             ${!isDone ? `
-              <div class="btn-pin ${isPinned?'active':''}" onclick="updateStatus(${item.rowIndex}, 'PIN')">★</div>
-              <button class="btn-ok" onclick="updateStatus(${item.rowIndex}, 'DONE')">介紹</button>
-            ` : `<button class="btn-undo" onclick="updateStatus(${item.rowIndex}, 'UNDO')">↩️ 回復</button>`}
+              <div class="btn-pin s-${pLevel}" id="btn-pin-${item.rowIndex}" onclick="cyclePriority(${item.rowIndex})">★</div>
+              <button class="btn-ok" onclick="markDone(${item.rowIndex})">介紹</button>
+            ` : `<button class="btn-undo" onclick="undo(${item.rowIndex})">↩️ 回復</button>`}
           </div>
         </div>`;
       list.innerHTML += html;
     });
   }
-  function updateStatus(rowIndex, type) {
+
+  // === 智慧防手震邏輯 (核心) ===
+  function cyclePriority(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) {
-      if(type === 'DONE') { target.status = "已介紹"; target.isPinned = "FALSE"; }
-      else if (type === 'UNDO') { target.status = "待介紹"; }
-      else if (type === 'PIN') { var curr = (target.isPinned === "TRUE" || target.isPinned === true); target.isPinned = !curr; }
+      // 1. 本地立即計算新權重 (0->1->2->3->0)
+      target.priority = ((target.priority || 0) + 1) % 4;
+      
+      // 2. 只有更新「該張卡片」的視覺，不重排整個列表 (Anti-Jump)
+      updateCardVisual(target); 
+      
+      // 3. 發送請求給後端 (背景執行)
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
+
+      // 4. 設定「防手震」計時器：如果 1.5 秒沒再動作，才自動重排
+      if(debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        render(localData); // 這裡才會真的移動卡片位置
+      }, 1500);
     }
-    render(localData);
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: type }) });
-    startTimer();
   }
+
+  // 輔助：只更新單張卡片顏色 (不移動位置)
+  function updateCardVisual(item) {
+    var card = document.getElementById(`card-${item.rowIndex}`);
+    var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
+    
+    // 移除舊樣式
+    card.classList.remove('p-0', 'p-1', 'p-2', 'p-3');
+    btn.classList.remove('s-0', 's-1', 's-2', 's-3');
+    
+    // 加上新樣式
+    card.classList.add(`p-${item.priority}`);
+    btn.classList.add(`s-${item.priority}`);
+  }
+
+  function markDone(rowIndex) {
+    // 介紹完直接送出，不需要防手震，因為通常介紹完就希望它消失
+    var target = localData.find(d => d.rowIndex == rowIndex);
+    if(target) { target.status = "已介紹"; target.priority = 0; }
+    render(localData);
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
+  }
+
+  function undo(rowIndex) {
+    var target = localData.find(d => d.rowIndex == rowIndex);
+    if(target) { target.status = "待介紹"; }
+    render(localData);
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
+  }
+
 </script>
 </body>
 </html>
