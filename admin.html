@@ -44,7 +44,7 @@
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
     
-    /* === 卡片樣式核心 === */
+    /* === 卡片樣式核心 (修改處) === */
     .row-card { 
         background: white; 
         border-radius: 12px; 
@@ -54,18 +54,20 @@
         align-items: center; 
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-        border-left: 8px solid transparent; /* 加寬左側邊條 */
-        transition: border-color 0.3s ease, background-color 0.3s ease; 
+        /* 修改：預設為淺灰色細邊框 */
+        border: 2px solid #e9ecef; 
+        transition: all 0.3s ease; 
     }
     
-    /* === 權重顏色系統 === */
-    .p-0 { border-left-color: transparent; } /* 無 */
-    .p-1 { border-left-color: #198754; background: #f0fff4; } /* 綠 (關注) */
-    .p-2 { border-left-color: #ffc107; background: #fffdf5; } /* 黃 (重要) */
-    .p-3 { border-left-color: #dc3545; background: #fff5f5; } /* 紅 (緊急) */
+    /* === 權重顏色系統 (修改處：改為全框線顏色) === */
+    .p-0 { border-color: #e9ecef; } /* 一般 (維持預設灰框) */
+    /* 有權重的卡片，邊框稍微加粗到 3px，並變色 */
+    .p-1 { border-color: #198754; border-width: 3px; background: #f0fff4; } /* 綠 (關注) */
+    .p-2 { border-color: #ffc107; border-width: 3px; background: #fffdf5; } /* 黃 (重要) */
+    .p-3 { border-color: #dc3545; border-width: 3px; background: #fff5f5; } /* 紅 (緊急) */
     
     /* 已完成樣式 */
-    .done { opacity: 0.6; background: #e9ecef !important; border-left-color: #adb5bd !important; }
+    .done { opacity: 0.6; background: #e9ecef !important; border-color: #adb5bd !important; border-width: 2px !important;}
     .done .name { text-decoration: line-through; color: #777; }
 
     .time { color: #888; font-size: 14px; width: 55px; }
@@ -73,7 +75,7 @@
     .job { font-size: 15px; color: #666; display: block; }
     .name { font-size: 24px; font-weight: bold; color: #000; display: block; }
     
-    /* 星星按鈕 (會變色) */
+    /* 星星按鈕 (修改處：移除放大效果，保持整齊) */
     .btn-pin { 
         width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ddd; background: white; 
         color: #ddd; font-size: 20px; display: flex; align-items: center; justify-content: center; 
@@ -84,7 +86,8 @@
     /* 星星顏色狀態 */
     .btn-pin.s-1 { color: #198754; border-color: #198754; } /* 綠星 */
     .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; } /* 黃星 */
-    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; font-weight: bold; transform: scale(1.1); } /* 紅星 */
+    /* 修改：紅星移除變大變粗效果，僅改變顏色，確保對齊 */
+    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; } /* 紅星 */
 
     .btn-ok { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; }
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; cursor: pointer; }
@@ -124,7 +127,7 @@
   var PASSWORD = ""; 
   var timer = null; 
   var localData = []; 
-  var debounceTimer = null; // 防手震計時器
+  var debounceTimer = null; 
 
   function login() {
     PASSWORD = document.getElementById('pwd').value;
@@ -145,7 +148,7 @@
     .then(json => {
       if(json.status === "error") { alert(json.message); location.reload(); return; }
       localData = json.data; 
-      render(localData); // 只有這裡會進行「大洗牌」排序
+      render(localData); 
       if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
@@ -155,13 +158,9 @@
     var list = document.getElementById('list'); 
     list.innerHTML = "";
     
-    // === 核心排序邏輯 ===
     data.sort((a, b) => {
-      // 1. 先比狀態 (待介紹優先)
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-      // 2. 再比權重 (3 > 2 > 1 > 0)
       if (a.priority !== b.priority) return b.priority - a.priority;
-      // 3. 最後維持原順序 (rowIndex)
       return a.rowIndex - b.rowIndex; 
     });
 
@@ -169,9 +168,9 @@
     
     data.forEach(item => {
       var isDone = item.status === "已介紹";
-      var pLevel = item.priority || 0; // 權重 0~3
+      var pLevel = item.priority || 0; 
       
-      var cls = `row-card p-${pLevel} ${isDone ? 'done' : ''}`; // p-0, p-1... 控制顏色
+      var cls = `row-card p-${pLevel} ${isDone ? 'done' : ''}`; 
       var timeParts = item.time.split(":");
       var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
 
@@ -190,43 +189,29 @@
     });
   }
 
-  // === 智慧防手震邏輯 (核心) ===
   function cyclePriority(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) {
-      // 1. 本地立即計算新權重 (0->1->2->3->0)
       target.priority = ((target.priority || 0) + 1) % 4;
-      
-      // 2. 只有更新「該張卡片」的視覺，不重排整個列表 (Anti-Jump)
       updateCardVisual(target); 
-      
-      // 3. 發送請求給後端 (背景執行)
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-
-      // 4. 設定「防手震」計時器：如果 1.5 秒沒再動作，才自動重排
       if(debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        render(localData); // 這裡才會真的移動卡片位置
+        render(localData); 
       }, 1500);
     }
   }
 
-  // 輔助：只更新單張卡片顏色 (不移動位置)
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`);
     var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
-    
-    // 移除舊樣式
     card.classList.remove('p-0', 'p-1', 'p-2', 'p-3');
     btn.classList.remove('s-0', 's-1', 's-2', 's-3');
-    
-    // 加上新樣式
     card.classList.add(`p-${item.priority}`);
     btn.classList.add(`s-${item.priority}`);
   }
 
   function markDone(rowIndex) {
-    // 介紹完直接送出，不需要防手震，因為通常介紹完就希望它消失
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) { target.status = "已介紹"; target.priority = 0; }
     render(localData);
@@ -239,7 +224,6 @@
     render(localData);
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
   }
-
 </script>
 </body>
 </html>
