@@ -3,149 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>主持人控台</title>
+  <title>來賓簽到</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background: #f4f4f4; padding: 20px; font-family: sans-serif; }
-    .container { max-width: 800px; margin: 0 auto; }
-    .row-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid transparent; }
+    body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Noto Sans TC', sans-serif; }
     
-    .pinned { border-left-color: #ffc107; background: #fffdf5; }
-    .done { opacity: 0.6; background: #e9ecef; }
-    .done .name { text-decoration: line-through; color: #777; }
+    /* 手機版樣式 (預設) */
+    .card-box { 
+      background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+      padding: 30px; width: 90%; max-width: 400px; text-align: center; 
+    }
+    
+    /* 電腦版樣式 (螢幕大於 768px 時觸發) */
+    @media (min-width: 768px) {
+      .card-box {
+        max-width: 600px; /* 加寬卡片 */
+      }
+      h2 {
+        white-space: nowrap; /* 強制不換行 */
+      }
+    }
 
-    .time { color: #888; font-size: 14px; width: 55px; }
-    .info { flex: 1; padding: 0 10px; }
-    .job { font-size: 15px; color: #666; display: block; }
-    .name { font-size: 24px; font-weight: bold; color: #000; display: block; }
+    input { background: #f0f2f5; border: none; border-radius: 10px; padding: 15px; width: 100%; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
+    .btn-go { background: #000; color: white; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; border: none; cursor: pointer; }
+    .btn-go:disabled { background: #999; }
+    #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; flex-direction:column; align-items:center; justify-content:center; }
+    .icon { font-size: 60px; margin-bottom: 10px; }
     
-    .btn-pin { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ddd; background: white; color: #ddd; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;}
-    .btn-pin.active { color: #ffc107; border-color: #ffc107; }
-    
-    .btn-ok { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    
-    #login-box { text-align: center; margin-top: 50px; }
-    #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    /* 活動名稱樣式 */
+    .event-title { color: #666; font-size: 1.1rem; margin-bottom: 20px; font-weight: normal; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <div id="login-box">
-    <h2>🔒 管控端登入</h2>
-    <input type="password" id="pwd" class="form-control w-50 mx-auto my-3" placeholder="請輸入密碼">
-    <button onclick="login()" class="btn btn-dark btn-lg">進入系統</button>
+<div class="card-box">
+  <div class="mb-3">
+     <img src="https://em-content.zobj.net/source/microsoft-teams/337/waving-hand_1f44b.png" width="50">
   </div>
+  
+  <h2 class="mb-2">歡迎蒞臨建功國小</h2>
+  <div id="event-name" class="event-title"></div>
 
-  <div id="main-app" style="display:none;">
-    <div id="toolbar">
-      <div>
-        <h3 class="m-0">🎤 現場名單</h3>
-        <small id="last-update" class="text-muted">最後更新: --:--:--</small>
-      </div>
-      <button onclick="fetchData()" class="btn btn-primary">🔄 立即更新</button>
-    </div>
-    <div id="list"></div>
-  </div>
+  <form id="form">
+    <input type="text" id="title" placeholder="職稱 (如：董事長)" required>
+    <input type="text" id="name" placeholder="姓名" required>
+    <button type="submit" id="btn" class="btn-go">簽到</button>
+  </form>
+</div>
+
+<div id="overlay">
+  <div class="icon">✅</div>
+  <h3>簽到成功</h3>
+  <p>即將返回首頁...</p>
 </div>
 
 <script>
-  // ⚠️⚠️⚠️ 請將下方網址換成你的 Google Script 網址 ⚠️⚠️⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
+  // 🟢 設定區：請在這裡修改你的活動名稱
+  const EVENT_NAME = "112學年度家長會授證典禮";
   
-  var PASSWORD = "";
-  var timer = null;
+  // 你的 GAS 網址
+  const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
 
-  function login() {
-    PASSWORD = document.getElementById('pwd').value;
-    document.getElementById('login-box').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-    
-    fetchData(); // 立即跑一次
-    // 設定 30 秒自動更新
-    timer = setInterval(fetchData, 30000);
-  }
+  // 程式開始
+  document.getElementById('event-name').innerText = EVENT_NAME;
 
-  function fetchData() {
-    var statusLabel = document.getElementById('last-update');
-    statusLabel.innerText = "更新中...";
-    
-    // 使用 POST 帶入參數 (避免網址過長或快取問題)
-    fetch(API_URL, {
-      method: "POST", 
-      body: JSON.stringify({ action: "getList", password: PASSWORD })
-    })
-    .then(res => res.json())
-    .then(json => {
-      if(json.status === "error") {
-        alert(json.message);
-        location.reload(); // 密碼錯就重來
-        return;
-      }
-      render(json.data);
-      var now = new Date();
-      statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
-    })
-    .catch(err => {
-      statusLabel.innerText = "連線失敗";
-      console.error(err);
-    });
-  }
+  document.getElementById('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn');
+    var title = document.getElementById('title').value;
+    var name = document.getElementById('name').value;
 
-  function render(data) {
-    var list = document.getElementById('list');
-    list.innerHTML = "";
+    btn.textContent = "傳送中...";
+    btn.disabled = true;
 
-    // 排序：未介紹先 > (未介紹中) 置頂 > 時間
-    data.sort((a, b) => {
-      if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-      var pA = (a.isPinned === "TRUE" || a.isPinned === true);
-      var pB = (b.isPinned === "TRUE" || b.isPinned === true);
-      if (pA !== pB) return pA ? -1 : 1;
-      return 0; 
-    });
-
-    if(data.length === 0) {
-      list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有訪客</div>";
-      return;
-    }
-
-    data.forEach(item => {
-      var isDone = item.status === "已介紹";
-      var isPinned = (item.isPinned === "TRUE" || item.isPinned === true);
-      var cls = `row-card ${isDone ? 'done' : ''} ${isPinned && !isDone ? 'pinned' : ''}`;
-      
-      var html = `
-        <div class="${cls}">
-          <div class="time">${item.time.substring(0,5)}</div>
-          <div class="info">
-            <span class="job">${item.title}</span>
-            <span class="name">${item.name}</span>
-          </div>
-          <div class="d-flex align-items-center">
-            ${!isDone ? `<div class="btn-pin ${isPinned?'active':''}" onclick="updateStatus(${item.rowIndex}, 'PIN')">★</div>` : ''}
-            ${!isDone ? `<button class="btn-ok" onclick="updateStatus(${item.rowIndex}, 'DONE')">介紹</button>` : '<span>完成</span>'}
-          </div>
-        </div>`;
-      list.innerHTML += html;
-    });
-  }
-
-  function updateStatus(rowIndex, type) {
-    if(type === 'DONE' && !confirm("確認已介紹完畢？")) return;
-    
-    // 立即呈現更新中的感覺
-    document.getElementById('last-update').innerText = "處理中...";
-    
     fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: type })
+      body: JSON.stringify({ action: "checkin", title: title, name: name })
     })
     .then(res => res.json())
     .then(data => {
-      fetchData(); // 更新完立刻重抓資料
+      document.getElementById('overlay').style.display = 'flex';
+      setTimeout(() => window.location.reload(), 2000); 
+    })
+    .catch(err => {
+      alert("連線怪怪的，請再試一次");
+      btn.disabled = false;
+      btn.textContent = "簽到";
     });
-  }
+  });
 </script>
 
 </body>
