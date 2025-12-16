@@ -48,7 +48,7 @@
     .row-card { 
         border-radius: 12px; 
         
-        /* 1. 強制所有卡片內距一致 (加寬，讓每個都像紅色一樣大氣) */
+        /* 1. 強制所有卡片內距完全一致 */
         padding: 20px 25px; 
         
         margin-bottom: 12px; 
@@ -57,27 +57,27 @@
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         
-        /* 2. 統一邊框粗細 (2px) */
+        /* 2. 統一邊框粗細 (2px)，只有顏色會變 */
         border: 2px solid transparent; 
         
-        /* 3. 設定最小高度，確保視覺整齊 */
-        min-height: 100px;
+        /* 3. 設定最小高度，確保不論名字長短，卡片高度都一樣大氣 */
+        min-height: 110px;
         
         transition: background-color 0.3s ease, border-color 0.3s ease; 
     }
     
     /* === 權重底色與邊框系統 === */
-    /* 一般 (白底 + 灰框) */
-    .p-0 { background: white; border-color: #e0e0e0; } 
+    /* Level 0: 一般 (白底 + 灰框) */
+    .p-0 { background: white; border-color: #e9ecef; } 
     
-    /* 綠 (關注) - 淺綠底 + 綠框 */
-    .p-1 { background: #e8f5e9; border-color: #4caf50; } 
+    /* Level 1: 綠 (關注) - 淺綠底 + 綠框 */
+    .p-1 { background: #f0fff4; border-color: #198754; } 
     
-    /* 黃 (重要) - 淺黃底 + 黃框 */
-    .p-2 { background: #fffde7; border-color: #ffc107; } 
+    /* Level 2: 黃 (重要) - 淺黃底 + 黃框 */
+    .p-2 { background: #fffdf5; border-color: #ffc107; } 
     
-    /* 紅 (緊急) - 淺紅底 + 紅框 */
-    .p-3 { background: #ffebee; border-color: #ef5350; } 
+    /* Level 3: 紅 (緊急) - 淺紅底 + 紅框 */
+    .p-3 { background: #fff5f5; border-color: #dc3545; } 
     
     /* 已完成樣式 */
     .done { 
@@ -93,16 +93,19 @@
         font-size: 16px; /* 統一字體 */
         width: 60px; 
         font-weight: 500;
+        flex-shrink: 0; /* 防止被擠壓 */
     }
     .info { 
         flex: 1; 
         padding: 0 20px; /* 增加文字與按鈕的距離 */
+        overflow: hidden; /* 防止爆版 */
     } 
     .job { 
         font-size: 16px; /* 統一字體 */
         color: #666; 
         display: block; 
         margin-bottom: 4px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .name { 
         font-size: 28px; /* 統一全部都用大字體 */
@@ -110,31 +113,32 @@
         color: #000; 
         display: block; 
         line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
-    /* 星星按鈕 */
+    /* 星星按鈕 (鎖死大小) */
     .btn-pin { 
-        width: 45px; height: 45px; 
+        width: 46px; height: 46px; 
         border-radius: 50%; 
         border: 1px solid #ddd; 
         background: white; 
         color: #ddd; 
-        font-size: 20px; 
+        font-size: 22px; 
         display: flex; align-items: center; justify-content: center; 
         cursor: pointer; 
         margin-right: 12px; 
         transition: all 0.2s;
-        flex-shrink: 0; 
+        flex-shrink: 0; /* 防止被擠壓 */
     }
     .btn-pin:hover { background: #f8f9fa; }
     
-    /* 星星顏色 */
+    /* 星星顏色 (只變色，不變形) */
     .btn-pin.s-1 { color: #198754; border-color: #198754; background: white; } 
     .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; background: white; } 
     .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; background: white; } 
 
-    .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 45px; font-weight: bold; }
-    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 45px; }
+    .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0;}
+    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
     
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
   </style>
@@ -203,9 +207,13 @@
     var list = document.getElementById('list'); 
     list.innerHTML = "";
     
+    // 排序邏輯：待介紹 > 權重(紅>黃>綠>灰) > 時間
     data.sort((a, b) => {
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-      if (a.priority !== b.priority) return b.priority - a.priority;
+      // 兼容舊資料：如果 priority 未定義，則視為 0
+      var pA = a.priority || ( (a.isPinned === "TRUE" || a.isPinned === true) ? 1 : 0 );
+      var pB = b.priority || ( (b.isPinned === "TRUE" || b.isPinned === true) ? 1 : 0 );
+      if (pA !== pB) return pB - pA; // 大的排前面
       return a.rowIndex - b.rowIndex; 
     });
 
@@ -213,8 +221,10 @@
     
     data.forEach(item => {
       var isDone = item.status === "已介紹";
-      var pLevel = item.priority || 0; 
+      // 取得權重等級 (0, 1, 2, 3)
+      var pLevel = item.priority || ( (item.isPinned === "TRUE" || item.isPinned === true) ? 1 : 0 );
       
+      // CSS Class 控制顏色 (p-0 ~ p-3)
       var cls = `row-card p-${pLevel} ${isDone ? 'done' : ''}`; 
       var timeParts = item.time.split(":");
       var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
@@ -234,12 +244,23 @@
     });
   }
 
+  // 權重循環邏輯：0 -> 1 -> 2 -> 3 -> 0
   function cyclePriority(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) {
-      target.priority = ((target.priority || 0) + 1) % 4;
-      updateCardVisual(target); 
+      // 確保 priority 是數字
+      var currentP = target.priority || ( (target.isPinned === "TRUE" || target.isPinned === true) ? 1 : 0 );
+      var newP = (currentP + 1) % 4;
+      
+      target.priority = newP;
+      target.isPinned = (newP > 0) ? "TRUE" : "FALSE"; // 保持舊欄位相容
+
+      updateCardVisual(target); // 立即更新視覺顏色
+      
+      // 發送 API 請求
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
+      
+      // 防手震：1.5秒後才重新排序
       if(debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         render(localData); 
@@ -247,28 +268,23 @@
     }
   }
 
+  // 只更新單張卡片顏色 (不改變位置)
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`);
     var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
+    
+    // 移除舊樣式
     card.classList.remove('p-0', 'p-1', 'p-2', 'p-3');
     btn.classList.remove('s-0', 's-1', 's-2', 's-3');
-    card.classList.add(`p-${item.priority}`);
-    btn.classList.add(`s-${item.priority}`);
+    
+    // 加上新樣式
+    var pLevel = item.priority || 0;
+    card.classList.add(`p-${pLevel}`);
+    btn.classList.add(`s-${pLevel}`);
   }
 
   function markDone(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
-    if(target) { target.status = "已介紹"; target.priority = 0; }
+    if(target) { target.status = "已介紹"; target.priority = 0; target.isPinned = "FALSE"; }
     render(localData);
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
-  }
-
-  function undo(rowIndex) {
-    var target = localData.find(d => d.rowIndex == rowIndex);
-    if(target) { target.status = "待介紹"; }
-    render(localData);
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
-  }
-</script>
-</body>
-</html>
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex
