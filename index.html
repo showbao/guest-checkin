@@ -6,19 +6,44 @@
   <title>來賓簽到</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
-    .card-box { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 30px; width: 90%; max-width: 400px; text-align: center; }
+    body { background-color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Noto Sans TC', sans-serif; }
+    
+    /* 手機版樣式 (預設) */
+    .card-box { 
+      background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+      padding: 30px; width: 90%; max-width: 400px; text-align: center; 
+    }
+    
+    /* 電腦版樣式 (螢幕大於 768px 時觸發) */
+    @media (min-width: 768px) {
+      .card-box {
+        max-width: 600px; /* 加寬卡片 */
+      }
+      h2 {
+        white-space: nowrap; /* 強制不換行 */
+      }
+    }
+
     input { background: #f0f2f5; border: none; border-radius: 10px; padding: 15px; width: 100%; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
     .btn-go { background: #000; color: white; padding: 15px; width: 100%; border-radius: 10px; font-size: 18px; font-weight: bold; border: none; cursor: pointer; }
     .btn-go:disabled { background: #999; }
     #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; flex-direction:column; align-items:center; justify-content:center; }
     .icon { font-size: 60px; margin-bottom: 10px; }
+    
+    /* 活動名稱樣式 */
+    .event-title { color: #666; font-size: 1.1rem; margin-bottom: 20px; font-weight: normal; }
   </style>
 </head>
 <body>
 
 <div class="card-box">
-  <h2 class="mb-4">👋 歡迎蒞臨建功國小</h2>
+  <div class="mb-3">
+     <img src="https://em-content.zobj.net/source/microsoft-teams/337/waving-hand_1f44b.png" width="50">
+  </div>
+  
+  <h2 class="mb-2">歡迎蒞臨建功國小</h2>
+  <div id="event-name" class="event-title"></div>
+
   <form id="form">
     <input type="text" id="title" placeholder="職稱 (如：董事長)" required>
     <input type="text" id="name" placeholder="姓名" required>
@@ -33,8 +58,14 @@
 </div>
 
 <script>
-  // ⚠️⚠️⚠️ 請將下方網址換成你的 Google Script 網址 ⚠️⚠️⚠️
+  // 🟢 設定區：請在這裡修改你的活動名稱
+  const EVENT_NAME = "112學年度家長會授證典禮";
+  
+  // 你的 GAS 網址
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
+
+  // 程式開始
+  document.getElementById('event-name').innerText = EVENT_NAME;
 
   document.getElementById('form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -45,8 +76,6 @@
     btn.textContent = "傳送中...";
     btn.disabled = true;
 
-    // 使用 sendBeacon 或 fetch (no-cors 不會回傳內容，但適合表單)
-    // 這裡我們用 POST 純文字傳輸，讓 GAS 的 doPost 解析
     fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({ action: "checkin", title: title, name: name })
@@ -54,7 +83,7 @@
     .then(res => res.json())
     .then(data => {
       document.getElementById('overlay').style.display = 'flex';
-      setTimeout(() => window.location.reload(), 2000); // 2秒後重整
+      setTimeout(() => window.location.reload(), 2000); 
     })
     .catch(err => {
       alert("連線怪怪的，請再試一次");
