@@ -6,65 +6,30 @@
   <title>主持人控台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    /* (維持原樣式，省略重複部分以節省篇幅，請直接使用上一版的 Style) */
     * { box-sizing: border-box; } 
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    
-    /* 登入區 */
     #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
-    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; }
+    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; text-align: center;}
     .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
-    
-    /* 標題區 (RWD優化) */
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    /* 卡片核心 (幽靈邊框) */
-    .row-card { 
-        border-radius: 12px; padding: 20px 25px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; 
-        border: none !important; /* 移除實體邊框 */
-        box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); /* 用陰影畫框 */
-        background: white; min-height: 110px; transition: background-color 0.2s ease; 
-    }
-    
-    /* 權重底色 (避免 Bootstrap 衝突，改用 level-X) */
-    .level-0 { background: white; } 
-    .level-1 { background: #f0fff4; } 
-    .level-2 { background: #fffdf5; } 
-    .level-3 { background: #fef2f2; } 
-    .done { opacity: 0.6; background: #f8f9fa !important; }
-    .done .name { text-decoration: line-through; color: #777; }
-
-    /* 內容排版 */
+    .row-card { border-radius: 12px; padding: 20px 25px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); background: white; min-height: 110px; transition: background-color 0.2s ease; }
+    .level-0 { background: white; } .level-1 { background: #f0fff4; } .level-2 { background: #fffdf5; } .level-3 { background: #fef2f2; } 
+    .done { opacity: 0.6; background: #f8f9fa !important; } .done .name { text-decoration: line-through; color: #777; }
     .time { color: #888; font-size: 16px; min-width: 60px; text-align: left; font-weight: 500; flex-shrink: 0; }
     .info { flex: 1; padding: 0 15px; overflow: hidden; min-width: 0; } 
     .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    /* 星星按鈕 (幽靈邊框) */
     .btn-pin { width: 46px; height: 46px; border-radius: 50%; border: none !important; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; flex-shrink: 0; outline: none;}
-    .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } 
-    .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } 
-    .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } 
-
+    .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } 
     .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0;}
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
-
-    @media (max-width: 576px) {
-        body { padding: 10px; }
-        .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
-        .row-card { padding: 15px 12px !important; min-height: 90px; }
-        .btn-pin { width: 40px; height: 40px; font-size: 18px; margin-right: 8px; }
-        .btn-ok { height: 40px; padding: 0 15px; font-size: 15px; }
-        .btn-undo { height: 40px; padding: 0 10px; font-size: 14px; }
-        .time { min-width: 50px; font-size: 14px; }
-        .info { padding: 0 10px; }
-        .name { font-size: 22px; } 
-        .job { font-size: 14px; }
-    }
+    @media (max-width: 576px) { body { padding: 10px; } .event-main-title { font-size: 1.6rem !important; margin: 15px 0; } .row-card { padding: 15px 12px !important; min-height: 90px; } .btn-pin { width: 40px; height: 40px; font-size: 18px; margin-right: 8px; } .btn-ok { height: 40px; padding: 0 15px; font-size: 15px; } .btn-undo { height: 40px; padding: 0 10px; font-size: 14px; } .time { min-width: 50px; font-size: 14px; } .info { padding: 0 10px; } .name { font-size: 22px; } .job { font-size: 14px; } }
   </style>
 </head>
 <body>
@@ -74,7 +39,7 @@
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
     <div class="login-title">管控端登入</div>
     <input type="password" id="pwd" class="form-control input-custom" placeholder="請輸入密碼">
-    <button onclick="login()" class="btn btn-login">進入系統</button>
+    <button onclick="manualLogin()" class="btn btn-login">進入系統</button>
   </div>
   <div id="main-app">
     <div class="school-header" style="margin-top: 20px;">北屯區建功國小</div>
@@ -87,23 +52,64 @@
   </div>
 </div>
 <script>
-  // ⚠️⚠️⚠️ 請換成最新的 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var debounceTimer = null; 
-  function login() { PASSWORD = document.getElementById('pwd').value; document.getElementById('login-box').style.display = 'none'; document.getElementById('main-app').style.display = 'block'; document.querySelector('.container').style.justifyContent = 'flex-start'; fetchData(); startTimer(); }
+
+  // ★★★ 新增：自動檢查是否從首頁登入過 ★★★
+  window.onload = function() {
+    var storedPwd = sessionStorage.getItem('host_password');
+    if (storedPwd) {
+      document.getElementById('pwd').value = storedPwd;
+      manualLogin(); // 自動觸發登入
+    }
+  };
+
+  function manualLogin() {
+    PASSWORD = document.getElementById('pwd').value;
+    // 進入讀取狀態
+    document.querySelector('.btn-login').innerText = "驗證中...";
+    document.querySelector('.btn-login').disabled = true;
+    
+    // 嘗試取得資料以驗證密碼
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
+    .then(res => res.json()).then(json => {
+      if(json.status === "error") { 
+        alert("登入失敗：" + json.message); 
+        document.querySelector('.btn-login').innerText = "進入系統";
+        document.querySelector('.btn-login').disabled = false;
+        // 清除錯誤的記憶密碼
+        sessionStorage.removeItem('host_password');
+        return; 
+      }
+      
+      // 成功：切換畫面
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+      document.querySelector('.container').style.justifyContent = 'flex-start';
+      
+      localData = json.data; render(localData); 
+      if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
+      var now = new Date(); document.getElementById('last-update').innerText = "最後更新: " + now.toLocaleTimeString();
+      startTimer();
+    });
+  }
+
   function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 120000); }
   function manualUpdate() { fetchData(); startTimer(); }
   function fetchData() {
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
-      if(json.status === "error") { alert("登入失敗：" + json.message); location.reload(); return; }
+      if(json.status === "error") { return; } // 若中途密碼失效不跳alert干擾
       localData = json.data; render(localData); 
       if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
+  
+  // (下方 render, cyclePriority, updateCardVisual, markDone, undo 函式與之前完全相同，請直接保留)
   function render(data) {
     var list = document.getElementById('list'); list.innerHTML = "";
     data.sort((a, b) => {
