@@ -84,6 +84,8 @@
       var isDone = item.status === "已介紹";
       var isPinned = (item.isPinned === "TRUE" || item.isPinned === true);
       var cls = `row-card ${isDone ? 'done' : ''} ${isPinned && !isDone ? 'pinned' : ''}`;
+      var timeParts = item.time.split(":");
+      var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
       var html = `
         <div class="${cls}" id="row-${item.rowIndex}">
           <div class="time">${item.time.substring(0,5)}</div>
