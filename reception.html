@@ -3,272 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>接待處報到系統</title>
+  <title>接待處報到</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* === 手機版優化介面 === */
-    body { 
-        background-color: #f0f2f5; 
-        padding: 15px; 
-        font-family: "Microsoft JhengHei", sans-serif; 
-    }
-    .container { 
-        max-width: 600px; 
-        margin: 0 auto; 
-        background: white; 
-        padding: 20px; 
-        border-radius: 16px; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-    }
-    
-    h3 { font-weight: 800; color: #333; margin-bottom: 20px; text-align: center; }
-
-    /* 搜尋框 */
-    .search-box { 
-        margin-bottom: 20px; 
-        border-radius: 12px; 
-        padding: 12px; 
-        border: 2px solid #ddd;
-    }
-    .search-box:focus { border-color: #2196f3; box-shadow: none; }
-
-    /* 名單列表 */
-    #guest-list { 
-        max-height: 50vh; /* 限制高度讓它可捲動 */
-        overflow-y: auto; 
-        margin-bottom: 30px;
-    }
-    
-    .guest-row { 
-        padding: 15px; 
-        border-bottom: 1px solid #f1f1f1; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        transition: background 0.2s;
-    }
-    .guest-row:last-child { border-bottom: none; }
-    
-    /* 姓名與職稱 */
-    .guest-info { font-size: 20px; font-weight: bold; color: #000; }
-    .guest-job { font-size: 15px; color: #666; display: block; margin-bottom: 2px; }
-    
-    /* 報到按鈕 */
-    .btn-arrived { 
-        background: #0d6efd; 
-        color: white; 
-        border: none; 
-        padding: 8px 20px; 
-        border-radius: 50px; 
-        font-weight: bold; 
-        font-size: 16px;
-        transition: all 0.2s;
-    }
-    .btn-arrived:active { transform: scale(0.95); }
-    .btn-arrived:disabled { background: #ccc; cursor: not-allowed; }
-
-    /* 現場補登區塊 */
-    .add-box { 
-        background: #fff3cd; 
-        padding: 20px; 
-        border-radius: 16px; 
-        border: 1px dashed #ffc107; 
-    }
-    .add-title { font-weight: bold; color: #856404; margin-bottom: 10px; display: block;}
-    
-    /* 載入中動畫 */
-    .loading { text-align: center; color: #999; padding: 20px; }
+    body { background-color: #f0f2f5; padding: 15px; font-family: "Microsoft JhengHei", sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .search-box { margin-bottom: 20px; border-radius: 12px; padding: 12px; border: 2px solid #ddd; }
+    #guest-list { max-height: 50vh; overflow-y: auto; margin-bottom: 30px; }
+    .guest-row { padding: 15px; border-bottom: 1px solid #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
+    .guest-info { font-size: 20px; font-weight: bold; }
+    .guest-job { font-size: 15px; color: #666; display: block; }
+    .btn-arrived { background: #0d6efd; color: white; border: none; padding: 8px 20px; border-radius: 50px; font-weight: bold; }
+    .btn-arrived:disabled { background: #ccc; }
+    .add-box { background: #fff3cd; padding: 20px; border-radius: 16px; border: 1px dashed #ffc107; }
   </style>
 </head>
 <body>
-
 <div class="container">
-  <h3>📋 接待處報到系統</h3>
-  
-  <input type="text" id="search" class="form-control form-control-lg search-box" placeholder="🔍 輸入姓名快速搜尋..." onkeyup="filterList()">
-  
-  <div id="guest-list">
-    <div class="loading">正在讀取名單...</div>
-  </div>
+  <h3 class="text-center mb-4">📋 接待處報到</h3>
+  <input type="text" id="search" class="form-control form-control-lg search-box" placeholder="🔍 搜尋姓名..." onkeyup="filterList()">
+  <div id="guest-list"><div class="text-center text-muted">讀取中...</div></div>
 
   <div class="add-box">
-    <span class="add-title">➕ 現場補登 (名單外貴賓)</span>
+    <strong class="d-block mb-2">➕ 現場補登</strong>
     <div class="row g-2">
-      <div class="col-4">
-        <input type="text" id="new-job" class="form-control" placeholder="職稱">
-      </div>
-      <div class="col-5">
-        <input type="text" id="new-name" class="form-control" placeholder="姓名">
-      </div>
-      <div class="col-3">
-        <button onclick="addNew()" class="btn btn-warning w-100 fw-bold">報到</button>
-      </div>
+      <div class="col-4"><input type="text" id="new-job" class="form-control" placeholder="職稱"></div>
+      <div class="col-5"><input type="text" id="new-name" class="form-control" placeholder="姓名"></div>
+      <div class="col-3"><button onclick="addNew()" class="btn btn-warning w-100 fw-bold">報到</button></div>
     </div>
   </div>
 </div>
-
 <script>
-  // ⚠️⚠️⚠️ 請務必換成你最新的 GAS API 網址 ⚠️⚠️⚠️
-  // ⚠️ 記得 GAS 部署權限要設為「任何人 (Anyone)」，否則 GitHub 會連不上
+  // ⚠️⚠️⚠️ 請換成最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
-  var allGuests = []; // 存放所有下載的名單
-
-  // 1. 啟動時讀取名單
+  var allGuests = [];
   function loadList() {
-    var listDiv = document.getElementById('guest-list');
-    
-    // 透過 POST 請求呼叫後端
-    // 注意：GitHub Pages 是外部網站，直接用 fetch POST 是最穩定的方式
-    fetch(API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "getAllList" }) 
-    })
-    .then(res => res.json())
-    .then(json => {
-      allGuests = json.data;
-      renderList(allGuests);
-    })
-    .catch(err => {
-      listDiv.innerHTML = "<div class='text-danger text-center'>連線失敗，請檢查網路或 GAS 設定</div>";
-      console.error(err);
-    });
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList" }) })
+    .then(res => res.json()).then(json => { allGuests = json.data; renderList(allGuests); });
   }
-
-  // 2. 渲染列表 (只顯示未報到的人)
   function renderList(data) {
-    var list = document.getElementById('guest-list');
-    list.innerHTML = "";
-    
-    // 過濾：只顯示狀態為 "未報到" 的人
+    var list = document.getElementById('guest-list'); list.innerHTML = "";
     var filtered = data.filter(d => d.status === "未報到");
-    
-    if(filtered.length === 0) { 
-        list.innerHTML = "<div class='text-center p-4 text-muted'>沒有未報到的來賓<br>(請使用搜尋或現場補登)</div>"; 
-        return;
-    }
-    
+    if(filtered.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>沒有未報到的來賓</div>"; return; }
     filtered.forEach(item => {
-      var html = `
-        <div class="guest-row" id="row-${item.rowIndex}">
-          <div>
-            <span class="guest-job">${item.title}</span>
-            <span class="guest-info">${item.name}</span>
-          </div>
-          <button class="btn-arrived" onclick="markArrived(this, ${item.rowIndex}, '${item.name}')">報到</button>
-        </div>`;
+      var html = `<div class="guest-row" id="row-${item.rowIndex}">
+          <div><span class="guest-job">${item.title}</span><span class="guest-info">${item.name}</span></div>
+          <button class="btn-arrived" onclick="markArrived(this, ${item.rowIndex})">報到</button></div>`;
       list.innerHTML += html;
     });
   }
-
-  // 3. 搜尋過濾功能
   function filterList() {
     var keyword = document.getElementById('search').value.toLowerCase().trim();
-    
-    // 如果沒有關鍵字，就重新顯示所有未報到的人
-    if(!keyword) { 
-        renderList(allGuests); 
-        return; 
-    }
-    
-    // 有關鍵字時：搜尋姓名或職稱，且狀態必須是 "未報到"
-    var filteredResults = allGuests.filter(d => 
-      (d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword)) && d.status === "未報到"
-    );
-    
-    var list = document.getElementById('guest-list');
-    list.innerHTML = "";
-    
-    if(filteredResults.length === 0) {
-        list.innerHTML = "<div class='text-center p-3 text-muted'>找不到相關名單，請使用下方補登</div>";
-        return;
-    }
-
-    filteredResults.forEach(item => {
-      var html = `
-        <div class="guest-row" id="row-${item.rowIndex}">
-          <div>
-            <span class="guest-job">${item.title}</span>
-            <span class="guest-info">${item.name}</span>
-          </div>
-          <button class="btn-arrived" onclick="markArrived(this, ${item.rowIndex}, '${item.name}')">報到</button>
-        </div>`;
+    if(!keyword) { renderList(allGuests); return; }
+    var filtered = allGuests.filter(d => (d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword)) && d.status === "未報到");
+    var list = document.getElementById('guest-list'); list.innerHTML = "";
+    if(filtered.length === 0) { list.innerHTML = "<div class='text-center text-muted p-3'>找不到</div>"; return; }
+    filtered.forEach(item => {
+      var html = `<div class="guest-row" id="row-${item.rowIndex}">
+          <div><span class="guest-job">${item.title}</span><span class="guest-info">${item.name}</span></div>
+          <button class="btn-arrived" onclick="markArrived(this, ${item.rowIndex})">報到</button></div>`;
       list.innerHTML += html;
     });
   }
-
-  // 4. 按下報到
-  function markArrived(btn, rowIndex, name) {
-    // UI 立即回饋：按鈕變色並停用
-    btn.disabled = true; 
-    btn.innerText = "已送出...";
-    btn.style.backgroundColor = "#6c757d"; // 變灰色
-
-    fetch(API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "markArrived", rowIndex: rowIndex }) 
-    })
-    .then(res => res.json())
-    .then(json => {
-        if(json.status === "success") {
-            // 成功後，讓該列淡出消失 (視覺效果)
-            var row = document.getElementById(`row-${rowIndex}`);
-            row.style.opacity = "0.5";
-            row.style.background = "#e8f5e9";
-            btn.innerText = "✅ 完成";
-            
-            // 更新本地資料 (避免搜尋時又跑出來)
-            var target = allGuests.find(g => g.rowIndex == rowIndex);
-            if(target) target.status = "待介紹";
-            
-            // 1秒後自動重新整理列表 (移除該列)
-            setTimeout(() => {
-                // 如果搜尋框有字，就維持搜尋狀態
-                filterList(); 
-            }, 800);
-        } else {
-            alert("錯誤：" + json.message);
-            btn.disabled = false;
-            btn.innerText = "報到";
-            btn.style.backgroundColor = "#0d6efd";
-        }
-    });
+  function markArrived(btn, rowIndex) {
+    btn.disabled = true; btn.innerText = "已報到"; btn.style.background = "#6c757d";
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "markArrived", rowIndex: rowIndex }) })
+    .then(() => { var row = document.getElementById(`row-${rowIndex}`); row.style.opacity = "0.5"; setTimeout(() => { filterList(); }, 800); });
   }
-
-  // 5. 現場補登
   function addNew() {
-    var title = document.getElementById('new-job').value;
-    var name = document.getElementById('new-name').value;
-    if(!name) { alert("請輸入姓名！"); return; }
-    
-    if(confirm(`確認新增：\n${title} ${name}\n\n並直接標示為「已報到」嗎？`)) {
-        // UI 鎖定防止重複按
-        var btn = document.querySelector('.btn-warning');
-        var orgText = btn.innerText;
-        btn.disabled = true; btn.innerText = "處理中...";
-
-        fetch(API_URL, { 
-            method: "POST", 
-            body: JSON.stringify({ action: "checkIn", title: title, name: name }) 
-        })
-        .then(() => {
-            alert(`🎉 ${name} 報到成功！\n資料已傳送至主持人控台。`);
-            // 清空輸入框
-            document.getElementById('new-job').value = "";
-            document.getElementById('new-name').value = "";
-            
-            // 恢復按鈕
-            btn.disabled = false; btn.innerText = orgText;
-            
-            // 重新讀取名單 (確保同步)
-            loadList();
-        });
+    var title = document.getElementById('new-job').value; var name = document.getElementById('new-name').value;
+    if(!name) { alert("請輸入姓名"); return; }
+    if(confirm(`確認新增：${title} ${name} 並直接報到？`)) {
+        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name }) })
+        .then(() => { alert("新增成功！"); document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; loadList(); });
     }
   }
-
-  // 程式啟動
   loadList();
 </script>
-
 </body>
 </html>
