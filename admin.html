@@ -24,7 +24,7 @@
         justify-content: center;
     }
 
-    /* === 登入卡片 (維持你喜歡的樣式) === */
+    /* === 登入卡片 === */
     #login-box { 
         background: white;
         padding: 40px 30px;
@@ -44,73 +44,97 @@
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
     
-    /* === 卡片樣式核心 (修正重點) === */
+    /* === 卡片樣式核心 (強制統一化) === */
     .row-card { 
         border-radius: 12px; 
-        padding: 18px; /* 統一加大內距，解決貼邊問題 */
+        
+        /* 1. 強制所有卡片內距一致 (加寬，讓每個都像紅色一樣大氣) */
+        padding: 20px 25px; 
+        
         margin-bottom: 12px; 
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         
-        /* 統一樣式：預設白底、細灰框 */
-        background: white; 
-        border: 1px solid #e0e0e0; /* 很細的灰線，不搶戲 */
+        /* 2. 統一邊框粗細 (2px) */
+        border: 2px solid transparent; 
         
-        transition: background-color 0.3s ease; 
+        /* 3. 設定最小高度，確保視覺整齊 */
+        min-height: 100px;
+        
+        transition: background-color 0.3s ease, border-color 0.3s ease; 
     }
     
-    /* === 權重底色系統 (只改底色，不動邊框) === */
-    /* 一般 (無) */
-    .p-0 { background: white; } 
+    /* === 權重底色與邊框系統 === */
+    /* 一般 (白底 + 灰框) */
+    .p-0 { background: white; border-color: #e0e0e0; } 
     
-    /* 綠 (關注) - 淺綠底 */
-    .p-1 { background: #e8f5e9; } 
+    /* 綠 (關注) - 淺綠底 + 綠框 */
+    .p-1 { background: #e8f5e9; border-color: #4caf50; } 
     
-    /* 黃 (重要) - 淺黃底 */
-    .p-2 { background: #fffde7; } 
+    /* 黃 (重要) - 淺黃底 + 黃框 */
+    .p-2 { background: #fffde7; border-color: #ffc107; } 
     
-    /* 紅 (緊急) - 淺紅底 */
-    .p-3 { background: #ffebee; } 
+    /* 紅 (緊急) - 淺紅底 + 紅框 */
+    .p-3 { background: #ffebee; border-color: #ef5350; } 
     
     /* 已完成樣式 */
     .done { 
         opacity: 0.6; 
-        background: #f8f9fa !important; /* 強制淺灰底 */
+        background: #f8f9fa !important; 
         border-color: #e9ecef !important;
     }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* 文字與內容設定 */
-    .time { color: #888; font-size: 14px; width: 55px; font-weight: 500;}
-    .info { flex: 1; padding: 0 15px; } /* 增加文字區左右間距 */
-    .job { font-size: 15px; color: #666; display: block; margin-bottom: 2px;}
-    .name { font-size: 24px; font-weight: bold; color: #000; display: block; line-height: 1.2;}
+    /* === 內容文字設定 (強制統一) === */
+    .time { 
+        color: #888; 
+        font-size: 16px; /* 統一字體 */
+        width: 60px; 
+        font-weight: 500;
+    }
+    .info { 
+        flex: 1; 
+        padding: 0 20px; /* 增加文字與按鈕的距離 */
+    } 
+    .job { 
+        font-size: 16px; /* 統一字體 */
+        color: #666; 
+        display: block; 
+        margin-bottom: 4px;
+    }
+    .name { 
+        font-size: 28px; /* 統一全部都用大字體 */
+        font-weight: 800; 
+        color: #000; 
+        display: block; 
+        line-height: 1.2;
+    }
     
-    /* 星星按鈕 (標準化大小) */
+    /* 星星按鈕 */
     .btn-pin { 
-        width: 42px; height: 42px; /* 固定正圓 */
+        width: 45px; height: 45px; 
         border-radius: 50%; 
         border: 1px solid #ddd; 
         background: white; 
         color: #ddd; 
-        font-size: 18px; 
+        font-size: 20px; 
         display: flex; align-items: center; justify-content: center; 
         cursor: pointer; 
-        margin-right: 10px; 
+        margin-right: 12px; 
         transition: all 0.2s;
-        flex-shrink: 0; /* 防止被擠壓 */
+        flex-shrink: 0; 
     }
     .btn-pin:hover { background: #f8f9fa; }
     
-    /* 星星顏色狀態 (只變色，不變大) */
+    /* 星星顏色 */
     .btn-pin.s-1 { color: #198754; border-color: #198754; background: white; } 
     .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; background: white; } 
-    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; background: white; } /* 移除 transform scale */
+    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; background: white; } 
 
-    .btn-ok { background: #198754; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; height: 42px; }
-    .btn-undo { background: #ffc107; color: #000; border: none; padding: 8px 15px; border-radius: 8px; font-size: 14px; cursor: pointer; height: 42px; }
+    .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 45px; font-weight: bold; }
+    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 45px; }
     
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
   </style>
@@ -191,7 +215,6 @@
       var isDone = item.status === "已介紹";
       var pLevel = item.priority || 0; 
       
-      // 注意這裡：不再使用 border-left 樣式，完全依賴 p-0, p-1 等底色類別
       var cls = `row-card p-${pLevel} ${isDone ? 'done' : ''}`; 
       var timeParts = item.time.split(":");
       var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
@@ -227,10 +250,8 @@
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`);
     var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
-    // 移除所有底色類別，重新加上新的
     card.classList.remove('p-0', 'p-1', 'p-2', 'p-3');
     btn.classList.remove('s-0', 's-1', 's-2', 's-3');
-    
     card.classList.add(`p-${item.priority}`);
     btn.classList.add(`s-${item.priority}`);
   }
