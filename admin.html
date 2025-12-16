@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === 全域設定 === */
-    * { box-sizing: border-box; } /* 鎖定盒模型，防止邊框撐大 */
+    * { box-sizing: border-box; } /* 鎖定盒模型 */
     
     body { 
         background: #f4f4f4; 
@@ -46,7 +46,7 @@
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
     
-    /* === 卡片樣式核心 (絕對穩固版) === */
+    /* === 卡片樣式核心 (幾何鎖定版) === */
     .row-card { 
         border-radius: 12px; 
         padding: 20px 25px; 
@@ -55,47 +55,42 @@
         align-items: center; 
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-        background: white;
         
-        /* 🔧 關鍵修正：預設就給它 4px 的厚度 (跟紅色一樣厚) */
-        /* 這樣一開始就「內縮」好了，切換顏色時就不會動 */
-        border: 4px solid #f0f0f0; 
+        /* 🔧 關鍵修正：所有狀態統一使用 1px 淺灰邊框 */
+        /* 因為邊框粗細永遠不變，所以內容絕對不會內縮 */
+        border: 1px solid #e0e0e0; 
+        background: white; /* 預設背景 */
         
         min-height: 110px;
-        transition: background-color 0.2s, border-color 0.2s; /* 平滑過渡 */
+        transition: background-color 0.2s ease; /* 只過渡背景色 */
     }
     
-    /* === 權重配色系統 (只換顏色，厚度已經在上面定死為 4px) === */
+    /* === 權重底色系統 (只改底色，邊框完全不動) === */
     
-    /* Level 0: 一般 (白底 + 淺灰厚框) -> 視覺上像沒框，但其實佔了位子 */
+    /* Level 0: 一般 (白底) */
     .p-0 { 
         background: white; 
-        border-color: #f0f0f0; 
     } 
     
-    /* Level 1: 綠 (關注) */
+    /* Level 1: 綠 (關注) - 淡綠底 */
     .p-1 { 
         background: #f0fff4; 
-        border-color: #198754; 
     } 
     
-    /* Level 2: 黃 (重要) */
+    /* Level 2: 黃 (重要) - 淡黃底 */
     .p-2 { 
-        background: #fffbeb; 
-        border-color: #ffc107; 
+        background: #fffdf5; 
     } 
     
-    /* Level 3: 紅 (緊急) */
+    /* Level 3: 紅 (緊急) - 淡紅底 */
     .p-3 { 
         background: #fef2f2; 
-        border-color: #dc3545; 
     } 
     
     /* 已完成樣式 */
     .done { 
         opacity: 0.6; 
         background: #f8f9fa !important; 
-        border-color: #e9ecef !important;
     }
     .done .name { text-decoration: line-through; color: #777; }
 
@@ -129,11 +124,11 @@
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
-    /* 星星按鈕 (鎖死大小) */
+    /* 星星按鈕 */
     .btn-pin { 
         width: 46px; height: 46px; 
         border-radius: 50%; 
-        border: 2px solid #ddd; /* 稍微加粗邊框讓點擊感更好 */
+        border: 1px solid #ddd; 
         background: white; 
         color: #ccc; 
         font-size: 22px; 
