@@ -3,35 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GuestLink 系統入口</title>
+  <title>活動入口首頁</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
-    .nav-box { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 40px; width: 90%; max-width: 400px; text-align: center; }
-    .btn-link { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 18px; transition: 0.2s; }
+    body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .portal-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 500px; width: 100%; text-align: center; }
+    .school-header { font-size: 1.2rem; color: #6c757d; font-weight: 700; margin-bottom: 10px; letter-spacing: 1px; }
+    .main-title { font-size: 2rem; font-weight: 800; color: #333; margin-bottom: 40px; }
     
-    /* 訪客按鈕：黑色 */
-    .btn-guest { background: #000; color: white; }
-    .btn-guest:hover { background: #333; color: white; }
+    .btn-portal { 
+        display: block; width: 100%; padding: 20px; margin-bottom: 20px; 
+        border-radius: 16px; border: none; font-size: 1.3rem; font-weight: bold; 
+        transition: transform 0.1s, box-shadow 0.2s; 
+        text-decoration: none; color: white; cursor: pointer;
+    }
+    .btn-portal:active { transform: scale(0.98); }
     
-    /* 主持人按鈕：白色黑框 */
-    .btn-admin { background: #fff; border: 2px solid #000; color: #000; }
-    .btn-admin:hover { background: #f0f0f0; color: #000; }
-    
-    .footer-text { font-size: 12px; color: #999; margin-top: 20px; }
+    .btn-guest { background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .btn-host { background: white; color: #333; border: 2px solid #333; }
+    .btn-reception { background: #f0f2f5; color: #555; }
+
+    /* Modal 樣式 */
+    .modal-content { border-radius: 20px; }
+    .modal-header { border-bottom: none; padding-bottom: 0; }
+    .modal-footer { border-top: none; padding-top: 0; }
   </style>
 </head>
 <body>
-  <div class="nav-box">
-    <div class="mb-4">
-      <img src="https://em-content.zobj.net/source/microsoft-teams/337/waving-hand_1f44b.png" width="40">
-    </div>
-    <h2 class="mb-4">系統入口</h2>
-    
-    <a href="guest.html" class="btn-link btn-guest">👤 訪客簽到</a>
-    <a href="admin.html" class="btn-link btn-admin">🎤 主持人控台</a>
 
-    <div class="footer-text">GuestLink System</div>
+  <div class="portal-card">
+    <div class="school-header">北屯區建功國小</div>
+    <h1 class="main-title">66週年校慶系統</h1>
+
+    <a href="guest.html" class="btn-portal btn-guest">
+      👋 來賓自助簽到
+    </a>
+
+    <button onclick="openLogin('admin')" class="btn-portal btn-host">
+      🎤 主持人控台
+    </button>
+
+    <button onclick="openLogin('reception')" class="btn-portal btn-reception">
+      📋 接待處作業
+    </button>
   </div>
+
+  <div class="modal fade" id="pwdModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header justify-content-center">
+          <h5 class="modal-title fw-bold" id="modalTitle">輸入密碼</h5>
+        </div>
+        <div class="modal-body">
+          <input type="password" id="modalPwd" class="form-control form-control-lg text-center" placeholder="請輸入通行碼">
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-dark w-100 py-2 fs-5" onclick="submitPassword()">進入系統</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    var targetPage = "";
+    var modal = new bootstrap.Modal(document.getElementById('pwdModal'));
+
+    function openLogin(type) {
+      targetPage = type;
+      var title = (type === 'admin') ? "🔒 主持人登入" : "🔒 接待處登入";
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalPwd').value = "";
+      modal.show();
+      // 自動聚焦
+      setTimeout(() => document.getElementById('modalPwd').focus(), 500);
+    }
+
+    function submitPassword() {
+      var pwd = document.getElementById('modalPwd').value;
+      if(!pwd) { alert("請輸入密碼"); return; }
+
+      // 核心邏輯：把密碼存入 Session Storage (暫存)，下一頁會自己去讀
+      if (targetPage === 'admin') {
+        sessionStorage.setItem('host_password', pwd);
+        window.location.href = 'admin.html';
+      } else if (targetPage === 'reception') {
+        sessionStorage.setItem('reception_password', pwd);
+        window.location.href = 'reception.html';
+      }
+    }
+    
+    // 支援按 Enter 送出
+    document.getElementById('modalPwd').addEventListener("keypress", function(event) {
+      if (event.key === "Enter") submitPassword();
+    });
+  </script>
 </body>
 </html>
