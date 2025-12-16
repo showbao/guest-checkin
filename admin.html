@@ -9,103 +9,69 @@
     body { background: #f4f4f4; padding: 20px; font-family: sans-serif; }
     .container { max-width: 800px; margin: 0 auto; }
     .row-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid transparent; transition: all 0.3s ease; }
-    
     .pinned { border-left-color: #ffc107; background: #fffdf5; }
-    /* 已完成樣式：變灰、半透明 */
     .done { opacity: 0.6; background: #e9ecef; }
     .done .name { text-decoration: line-through; color: #777; }
-
     .time { color: #888; font-size: 14px; width: 55px; }
     .info { flex: 1; padding: 0 10px; }
     .job { font-size: 15px; color: #666; display: block; }
     .name { font-size: 24px; font-weight: bold; color: #000; display: block; }
-    
     .btn-pin { width: 45px; height: 45px; border-radius: 50%; border: 1px solid #ddd; background: white; color: #ddd; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px;}
     .btn-pin.active { color: #ffc107; border-color: #ffc107; }
-    
     .btn-ok { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    /* 回復按鈕樣式 */
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-
     #login-box { text-align: center; margin-top: 50px; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
   </style>
 </head>
 <body>
-
 <div class="container">
   <div id="login-box">
     <h2>🔒 管控端登入</h2>
     <input type="password" id="pwd" class="form-control w-50 mx-auto my-3" placeholder="請輸入密碼">
     <button onclick="login()" class="btn btn-dark btn-lg">進入系統</button>
   </div>
-
   <div id="main-app" style="display:none;">
-    <div id="toolbar">
-      <div>
-        <h3 class="m-0">🎤 現場名單</h3>
-        <small id="last-update" class="text-muted">等待同步...</small>
-      </div>
+    <h5 id="event-header" class="text-center text-muted mb-4"></h5> <div id="toolbar">
+      <div><h3 class="m-0">🎤 現場名單</h3><small id="last-update" class="text-muted">等待同步...</small></div>
       <button onclick="manualUpdate()" class="btn btn-primary">🔄 立即更新</button>
     </div>
     <div id="list"></div>
   </div>
 </div>
-
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
+  // ⚠️⚠️⚠️ 這裡換成你的 GAS 網址 ⚠️⚠️⚠️
+  const API_URL = "https://script.google.com/macros/s/你的ID/exec";
   
-  var PASSWORD = "";
-  var timer = null;
-  // 本地暫存資料，為了讓畫面反應更快
-  var localData = []; 
+  var PASSWORD = ""; var timer = null; var localData = []; 
 
   function login() {
     PASSWORD = document.getElementById('pwd').value;
     document.getElementById('login-box').style.display = 'none';
     document.getElementById('main-app').style.display = 'block';
-    
-    fetchData(); 
-    startTimer();
+    fetchData(); startTimer();
   }
 
-  function startTimer() {
-    if(timer) clearInterval(timer);
-    // 設定 2 分鐘 (120000 毫秒) 自動更新
-    timer = setInterval(fetchData, 120000);
-  }
-
-  function manualUpdate() {
-    fetchData();
-    startTimer(); // 重置計時器
-  }
+  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 120000); }
+  function manualUpdate() { fetchData(); startTimer(); }
 
   function fetchData() {
-    var statusLabel = document.getElementById('last-update');
-    statusLabel.innerText = "更新中...";
-    
-    fetch(API_URL, {
-      method: "POST", 
-      body: JSON.stringify({ action: "getList", password: PASSWORD })
-    })
+    var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getList", password: PASSWORD }) })
     .then(res => res.json())
     .then(json => {
-      if(json.status === "error") {
-        alert(json.message); location.reload(); return;
-      }
-      localData = json.data; // 更新本地資料
-      render(localData);
+      if(json.status === "error") { alert(json.message); location.reload(); return; }
+      localData = json.data; render(localData);
       
-      var now = new Date();
-      statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
+      // 更新活動名稱
+      if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
+      
+      var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
 
   function render(data) {
-    var list = document.getElementById('list');
-    list.innerHTML = "";
-
-    // 排序：待介紹 > 已介紹 | (待介紹中) 置頂 > 時間
+    var list = document.getElementById('list'); list.innerHTML = "";
     data.sort((a, b) => {
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
       var pA = (a.isPinned === "TRUE" || a.isPinned === true);
@@ -113,31 +79,20 @@
       if (pA !== pB) return pA ? -1 : 1;
       return 0; 
     });
-
-    if(data.length === 0) {
-      list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有訪客</div>";
-      return;
-    }
-
+    if(data.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有訪客</div>"; return; }
     data.forEach(item => {
       var isDone = item.status === "已介紹";
       var isPinned = (item.isPinned === "TRUE" || item.isPinned === true);
       var cls = `row-card ${isDone ? 'done' : ''} ${isPinned && !isDone ? 'pinned' : ''}`;
-      
       var html = `
         <div class="${cls}" id="row-${item.rowIndex}">
           <div class="time">${item.time.substring(0,5)}</div>
-          <div class="info">
-            <span class="job">${item.title}</span>
-            <span class="name">${item.name}</span>
-          </div>
+          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
           <div class="d-flex align-items-center">
             ${!isDone ? `
               <div class="btn-pin ${isPinned?'active':''}" onclick="updateStatus(${item.rowIndex}, 'PIN')">★</div>
               <button class="btn-ok" onclick="updateStatus(${item.rowIndex}, 'DONE')">介紹</button>
-            ` : `
-              <button class="btn-undo" onclick="updateStatus(${item.rowIndex}, 'UNDO')">↩️ 回復</button>
-            `}
+            ` : `<button class="btn-undo" onclick="updateStatus(${item.rowIndex}, 'UNDO')">↩️ 回復</button>`}
           </div>
         </div>`;
       list.innerHTML += html;
@@ -145,41 +100,16 @@
   }
 
   function updateStatus(rowIndex, type) {
-    // ⚡️ 樂觀更新 (Optimistic UI)：先改畫面，再傳送資料
-    // 這會讓使用者感覺「零延遲」
-    
-    // 1. 找到本地資料並修改
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) {
-      if(type === 'DONE') {
-        target.status = "已介紹";
-        target.isPinned = "FALSE";
-      } else if (type === 'UNDO') {
-        target.status = "待介紹"; // 回復狀態
-      } else if (type === 'PIN') {
-        var curr = (target.isPinned === "TRUE" || target.isPinned === true);
-        target.isPinned = !curr;
-      }
+      if(type === 'DONE') { target.status = "已介紹"; target.isPinned = "FALSE"; }
+      else if (type === 'UNDO') { target.status = "待介紹"; }
+      else if (type === 'PIN') { var curr = (target.isPinned === "TRUE" || target.isPinned === true); target.isPinned = !curr; }
     }
-    
-    // 2. 立即重繪畫面 (使用者會覺得已經好了)
     render(localData);
-    
-    // 3. 在背景偷偷傳送資料給 Google
-    fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: type })
-    }).then(() => {
-       // 傳送成功，不做事（因為畫面已經改了）
-    }).catch(() => {
-       // 如果失敗，才重新抓取一次正確資料
-       fetchData();
-    });
-
-    // 重置計時器，避免剛按完就自動更新打斷操作
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: type }) });
     startTimer();
   }
 </script>
-
 </body>
 </html>
