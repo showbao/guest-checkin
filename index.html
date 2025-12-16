@@ -33,7 +33,8 @@
 
   <div class="portal-card">
     <div class="school-header">北屯區建功國小</div>
-    <h1 class="main-title">66週年校慶系統</h1>
+    
+    <h1 class="main-title" id="site-title">載入中...</h1>
 
     <a href="guest.html" class="btn-portal btn-guest">
       👋 來賓自助簽到
@@ -66,8 +67,35 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // ⚠️⚠️⚠️ 請確認這裡是你的 GAS 網址 ⚠️⚠️⚠️
+    const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
+
     var targetPage = "";
     var modal = new bootstrap.Modal(document.getElementById('pwdModal'));
+
+    // ★★★ 新增：網頁載入後，立刻去抓取活動名稱 ★★★
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchSettings();
+    });
+
+    function fetchSettings() {
+        // 呼叫後端 getSettings (這個功能不需要密碼)
+        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getSettings" }) })
+        .then(res => res.json())
+        .then(json => {
+            if(json.eventName) {
+                // 更新標題文字
+                document.getElementById('site-title').innerText = json.eventName;
+            } else {
+                // 如果抓不到，顯示預設值
+                document.getElementById('site-title').innerText = "北屯區建功國小活動系統";
+            }
+        })
+        .catch(err => {
+            console.error("無法讀取標題", err);
+            document.getElementById('site-title').innerText = "北屯區建功國小活動系統";
+        });
+    }
 
     function openLogin(type) {
       targetPage = type;
@@ -75,7 +103,6 @@
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalPwd').value = "";
       modal.show();
-      // 自動聚焦
       setTimeout(() => document.getElementById('modalPwd').focus(), 500);
     }
 
@@ -83,7 +110,7 @@
       var pwd = document.getElementById('modalPwd').value;
       if(!pwd) { alert("請輸入密碼"); return; }
 
-      // 核心邏輯：把密碼存入 Session Storage (暫存)，下一頁會自己去讀
+      // 存入密碼並跳轉
       if (targetPage === 'admin') {
         sessionStorage.setItem('host_password', pwd);
         window.location.href = 'admin.html';
@@ -93,7 +120,6 @@
       }
     }
     
-    // 支援按 Enter 送出
     document.getElementById('modalPwd').addEventListener("keypress", function(event) {
       if (event.key === "Enter") submitPassword();
     });
