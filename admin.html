@@ -3,139 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>主持人控制台</title>
+  <title>主持人控台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === 全域設定 === */
     * { box-sizing: border-box; } 
+    body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    body { 
-        background: #f4f4f4; 
-        padding: 20px; 
-        font-family: "Microsoft JhengHei", sans-serif; 
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-    .container { 
-        max-width: 800px; 
-        margin: 0 auto; 
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
     /* === 登入卡片 === */
-    #login-box { 
-        background: white;
-        padding: 40px 30px;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-        max-width: 450px;
-        width: 100%;
-        margin: 0 auto;
-        text-align: center;
-    }
+    #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
     .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; text-align: center;}
     .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
-    /* === 標題設定 (RWD) === */
+    /* === 標題 (RWD) === */
     #main-app { display: none; width: 100%; }
+    .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    .event-main-title { 
-        font-size: 2.8rem; 
-        font-weight: 800; 
-        color: #212529; 
-        text-align: center; 
-        margin: 10px 0 25px 0; 
-        line-height: 1.2; 
-        white-space: nowrap; 
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    /* === 卡片樣式核心 === */
+    /* === 卡片樣式核心 (幽靈邊框 + 幾何鎖定) === */
     .row-card { 
         border-radius: 12px; 
-        
-        /* 這裡的 padding: 20px 25px 原本被 Bootstrap 的 p-3 蓋掉了 */
-        /* 現在改名後，這裡的設定就會生效，絕對穩如泰山 */
         padding: 20px 25px; 
-        
         margin-bottom: 12px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        
+        display: flex; align-items: center; justify-content: space-between; 
         border: none !important; 
-        box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05);
-        
+        box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); /* 幽靈邊框 */
         background: white;
         min-height: 110px;
         transition: background-color 0.2s ease; 
     }
     
-    /* === 權重底色系統 (改名為 level-X 以避免 Bootstrap 衝突) === */
+    /* === 權重底色 (改名 level 以避開 Bootstrap) === */
     .level-0 { background: white; } 
-    .level-1 { background: #f0fff4; } /* 綠底 */
-    .level-2 { background: #fffdf5; } /* 黃底 */
-    .level-3 { background: #fef2f2; } /* 紅底 */
+    .level-1 { background: #f0fff4; } 
+    .level-2 { background: #fffdf5; } 
+    .level-3 { background: #fef2f2; } 
     
-    /* 已完成樣式 */
     .done { opacity: 0.6; background: #f8f9fa !important; }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* === 內容文字設定 === */
-    .time { 
-        color: #888; 
-        font-size: 16px; 
-        min-width: 60px; 
-        text-align: left;
-        font-weight: 500;
-        flex-shrink: 0; 
-    }
-    .info { 
-        flex: 1; 
-        padding: 0 15px; 
-        overflow: hidden; 
-        min-width: 0; 
-    } 
-    .job { 
-        font-size: 16px; 
-        color: #666; 
-        display: block; 
-        margin-bottom: 4px;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .name { 
-        font-size: 28px; 
-        font-weight: 800; 
-        color: #000; 
-        display: block; 
-        line-height: 1.2;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    /* === 內容設定 === */
+    .time { color: #888; font-size: 16px; min-width: 60px; text-align: left; font-weight: 500; flex-shrink: 0; }
+    .info { flex: 1; padding: 0 15px; overflow: hidden; min-width: 0; } 
+    .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
     /* 星星按鈕 */
-    .btn-pin { 
-        width: 46px; height: 46px; 
-        border-radius: 50%; 
-        border: none !important;
-        box-shadow: 0 0 0 1px #ddd;
-        background: white; 
-        color: #ccc; 
-        font-size: 22px; 
-        display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; 
-        margin-right: 12px; 
-        flex-shrink: 0; 
-        outline: none;
-    }
-    
-    /* 星星顏色 (Class 也改為 s-level-X 以防萬一) */
+    .btn-pin { width: 46px; height: 46px; border-radius: 50%; border: none !important; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; flex-shrink: 0; outline: none;}
     .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } 
     .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } 
     .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } 
@@ -143,12 +59,9 @@
     /* 按鈕樣式 */
     .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0;}
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
-    
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
 
-    /* ========================================= */
-    /* 📱 手機版專屬優化 */
-    /* ========================================= */
+    /* 手機優化 */
     @media (max-width: 576px) {
         body { padding: 10px; }
         .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
@@ -165,19 +78,16 @@
 </head>
 <body>
 <div class="container">
-  
   <div id="login-box">
     <div class="school-header">北屯區建功國小</div>
     <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
-    <div class="login-title">主持人登入</div>
+    <div class="login-title">管控端登入</div>
     <input type="password" id="pwd" class="form-control input-custom" placeholder="請輸入密碼">
     <button onclick="login()" class="btn btn-login">進入系統</button>
   </div>
-
   <div id="main-app">
     <div class="school-header" style="margin-top: 20px;">北屯區建功國小</div>
     <h1 id="event-header" class="event-main-title"></h1> 
-    
     <div id="toolbar">
       <div>
         <h3 class="m-0" style="font-weight: 700;">🎤 現場名單</h3>
@@ -187,16 +97,12 @@
     </div>
     <div id="list"></div>
   </div>
-
 </div>
 <script>
-  // ⚠️⚠️⚠️ 請務必確認這裡是否為最新的 GAS 網址 (每次部署都要檢查) ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 記得換成最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
-  var PASSWORD = ""; 
-  var timer = null; 
-  var localData = []; 
-  var debounceTimer = null; 
+  var PASSWORD = ""; var timer = null; var localData = []; var debounceTimer = null; 
 
   function login() {
     PASSWORD = document.getElementById('pwd').value;
@@ -206,34 +112,24 @@
     document.querySelector('.container').style.justifyContent = 'flex-start';
     fetchData(); startTimer();
   }
-
   function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 120000); }
   function manualUpdate() { fetchData(); startTimer(); }
 
   function fetchData() {
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getList", password: PASSWORD }) })
+    // 注意：這裡改為 getHostList
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json())
     .then(json => {
-      if(json.status === "error") { 
-        alert("登入失敗：" + json.message); 
-        location.reload(); 
-        return; 
-      }
-      localData = json.data; 
-      render(localData); 
+      if(json.status === "error") { alert("登入失敗：" + json.message); location.reload(); return; }
+      localData = json.data; render(localData); 
       if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
-    })
-    .catch(err => {
-        console.error(err);
     });
   }
 
   function render(data) {
-    var list = document.getElementById('list'); 
-    list.innerHTML = "";
-    
+    var list = document.getElementById('list'); list.innerHTML = "";
     data.sort((a, b) => {
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
       var pA = a.priority || ( (a.isPinned === "TRUE" || a.isPinned === true) ? 1 : 0 );
@@ -241,18 +137,14 @@
       if (pA !== pB) return pB - pA; 
       return a.rowIndex - b.rowIndex; 
     });
-
-    if(data.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有訪客</div>"; return; }
+    if(data.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有待介紹的來賓</div>"; return; }
     
     data.forEach(item => {
       var isDone = item.status === "已介紹";
       var pLevel = item.priority || ( (item.isPinned === "TRUE" || item.isPinned === true) ? 1 : 0 );
-      
-      // 修正：使用 level-X 避免與 Bootstrap 衝突
       var cls = `row-card level-${pLevel} ${isDone ? 'done' : ''}`; 
       var timeParts = item.time.split(":");
       var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
-
       var html = `
         <div class="${cls}" id="card-${item.rowIndex}">
           <div class="time">${shortTime}</div>  
@@ -273,35 +165,28 @@
     if(target) {
       var currentP = target.priority || ( (target.isPinned === "TRUE" || target.isPinned === true) ? 1 : 0 );
       var newP = (currentP + 1) % 4;
-      target.priority = newP;
-      target.isPinned = (newP > 0) ? "TRUE" : "FALSE"; 
+      target.priority = newP; target.isPinned = (newP > 0) ? "TRUE" : "FALSE"; 
       updateCardVisual(target); 
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-      if(debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => { render(localData); }, 1500);
+      if(debounceTimer) clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { render(localData); }, 1500);
     }
   }
 
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`);
     var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
-    
-    // 移除舊的 level class
     card.classList.remove('level-0', 'level-1', 'level-2', 'level-3');
     btn.classList.remove('s-level-0', 's-level-1', 's-level-2', 's-level-3');
-    
     var pLevel = item.priority || 0;
     card.classList.add(`level-${pLevel}`);
     btn.classList.add(`s-level-${pLevel}`);
   }
-
   function markDone(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) { target.status = "已介紹"; target.priority = 0; target.isPinned = "FALSE"; }
     render(localData);
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
   }
-
   function undo(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) { target.status = "待介紹"; }
