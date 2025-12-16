@@ -42,30 +42,39 @@
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
-    /* === 主控台 === */
+    /* === 主控台標題 === */
     #main-app { display: none; width: 100%; }
-    .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
     
-    /* === 卡片樣式核心 (零位移保證版) === */
+    .event-main-title { 
+        font-size: 2.8rem; /* 電腦版大字體 */
+        font-weight: 800; 
+        color: #212529; 
+        text-align: center; 
+        margin: 10px 0 25px 0; 
+        line-height: 1.2; 
+        white-space: nowrap; /* 強制不換行 */
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* === 卡片樣式核心 (絕對穩固版) === */
     .row-card { 
         border-radius: 12px; 
         
-        /* 1. 加大內距：模擬原本紅色框「往內縮」後的位置，從一開始就定住 */
-        padding: 24px 29px; 
+        /* 電腦版內距 */
+        padding: 20px 25px; 
         
         margin-bottom: 12px; 
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         
-        /* 2. 移除所有實體邊框：這是解決內縮的關鍵 */
-        border: 0px solid transparent; 
+        /* 🔧 幾何鎖死：所有狀態統一使用 1px 灰色邊框 */
+        /* 這保證了不管換什麼底色，卡片佔用的像素完全不變 */
+        border: 1px solid #e0e0e0; 
+        background: white;
         
-        /* 3. 使用陰影來模擬邊框：陰影不佔空間，所以內容不會動 */
-        /* box-shadow: x y blur spread color */
-        box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05);
-        
-        background: white; 
         min-height: 110px;
         transition: background-color 0.2s ease; 
     }
@@ -77,17 +86,14 @@
     .p-3 { background: #fef2f2; } /* 紅底 */
     
     /* 已完成樣式 */
-    .done { 
-        opacity: 0.6; 
-        background: #f8f9fa !important; 
-    }
+    .done { opacity: 0.6; background: #f8f9fa !important; }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* === 內容文字設定 (鎖定寬度) === */
+    /* === 內容文字設定 === */
     .time { 
         color: #888; 
         font-size: 16px; 
-        min-width: 65px; 
+        min-width: 60px; 
         text-align: left;
         font-weight: 500;
         flex-shrink: 0; 
@@ -95,7 +101,8 @@
     .info { 
         flex: 1; 
         padding: 0 15px; 
-        overflow: hidden; 
+        overflow: hidden; /* 防止爆版 */
+        min-width: 0; /* 關鍵 CSS：讓 Flex 子元素可以正確縮小 */
     } 
     .job { 
         font-size: 16px; 
@@ -110,10 +117,11 @@
         color: #000; 
         display: block; 
         line-height: 1.2;
+        /* 讓長名字顯示 ... 而不是撐開版面 */
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
-    /* 星星按鈕 (移除所有可能造成變形的效果) */
+    /* 星星按鈕 */
     .btn-pin { 
         width: 46px; height: 46px; 
         border-radius: 50%; 
@@ -126,10 +134,8 @@
         margin-right: 12px; 
         flex-shrink: 0; 
     }
-    /* 移除 hover 的放大效果，避免視覺干擾 */
-    .btn-pin:hover { background: #fff; } 
     
-    /* 星星顏色 (只變色) */
+    /* 星星顏色 */
     .btn-pin.s-1 { color: #198754; border-color: #198754; } 
     .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; } 
     .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; } 
@@ -139,6 +145,35 @@
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
     
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+
+    /* ========================================= */
+    /* 📱 手機版專屬優化 (Mobile Optimization) */
+    /* ========================================= */
+    @media (max-width: 576px) {
+        body { padding: 10px; }
+        
+        /* 1. 標題縮小：確保手機上一行顯示 */
+        .event-main-title { 
+            font-size: 1.6rem !important; 
+            margin: 15px 0;
+        }
+
+        /* 2. 卡片空間釋放：減少內距，把空間還給名字 */
+        .row-card {
+            padding: 15px 12px !important; /* 左右內距大幅縮小 */
+            min-height: 90px; /* 高度稍微縮小 */
+        }
+        
+        /* 3. 元件縮小：按鈕和星星稍微改小，避免搶戲 */
+        .btn-pin { width: 40px; height: 40px; font-size: 18px; margin-right: 8px; }
+        .btn-ok { height: 40px; padding: 0 15px; font-size: 15px; }
+        .btn-undo { height: 40px; padding: 0 10px; font-size: 14px; }
+        
+        .time { min-width: 50px; font-size: 14px; }
+        .info { padding: 0 10px; }
+        .name { font-size: 22px; } /* 名字字體適配手機 */
+        .job { font-size: 14px; }
+    }
   </style>
 </head>
 <body>
