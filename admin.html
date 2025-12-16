@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === 全域設定 === */
-    * { box-sizing: border-box; } /* 核心修正：鎖定盒模型 */
+    * { box-sizing: border-box; } /* 確保邊框與內距不會改變元件總尺寸 */
     
     body { 
         background: #f4f4f4; 
@@ -48,35 +48,49 @@
     
     /* === 卡片樣式核心 (絕對對齊版) === */
     .row-card { 
-        background: white; /* 統一遍白底 */
         border-radius: 12px; 
+        
+        /* 1. 統一內距：確保所有內容離邊緣的距離一模一樣 */
         padding: 20px 25px; 
+        
         margin-bottom: 12px; 
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         
-        /* 🔧 關鍵修正：全部統一使用 3px 實線邊框 */
-        /* 這樣普通卡片和紅色卡片佔用的寬度才會一模一樣 */
-        border: 3px solid #e9ecef; 
+        /* 2. 統一邊框：所有卡片都是 1px，解決對不齊的元兇 */
+        border: 1px solid #e0e0e0; 
         
         min-height: 110px;
         transition: all 0.2s ease; 
     }
     
-    /* === 權重顏色系統 (只改顏色，不動粗細) === */
-    /* Level 0: 一般 (淺灰框) */
-    .p-0 { border-color: #e9ecef; } 
+    /* === 權重底色系統 (只換底色，不動邊框與尺寸) === */
     
-    /* Level 1: 綠 (關注) - 綠框 */
-    .p-1 { border-color: #198754; } 
+    /* Level 0: 一般 (白底) */
+    .p-0 { 
+        background: white; 
+        border-color: #e0e0e0; /* 淺灰邊框 */
+    } 
     
-    /* Level 2: 黃 (重要) - 黃框 */
-    .p-2 { border-color: #ffc107; } 
+    /* Level 1: 綠 (關注) - 淡綠底 */
+    .p-1 { 
+        background: #f0fff4; 
+        border-color: #bbf7d0; /* 極淡綠邊框 */
+    } 
     
-    /* Level 3: 紅 (緊急) - 紅框 */
-    .p-3 { border-color: #dc3545; } 
+    /* Level 2: 黃 (重要) - 淡黃底 */
+    .p-2 { 
+        background: #fffbeb; 
+        border-color: #fde68a; /* 極淡黃邊框 */
+    } 
+    
+    /* Level 3: 紅 (緊急) - 淡紅底 */
+    .p-3 { 
+        background: #fef2f2; 
+        border-color: #fecaca; /* 極淡紅邊框 */
+    } 
     
     /* 已完成樣式 */
     .done { 
@@ -86,17 +100,19 @@
     }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* === 內容文字設定 === */
+    /* === 內容文字設定 (鎖定寬度) === */
     .time { 
         color: #888; 
         font-size: 16px; 
-        width: 60px; /* 固定寬度，確保後面名字對齊 */
+        /* 3. 鎖定時間欄位寬度：確保每一行的姓名都從同一個像素開始 */
+        min-width: 65px; 
+        text-align: left;
         font-weight: 500;
         flex-shrink: 0; 
     }
     .info { 
         flex: 1; 
-        padding: 0 20px; 
+        padding: 0 15px; /* 統一文字與左右元件的距離 */
         overflow: hidden; 
     } 
     .job { 
@@ -115,11 +131,11 @@
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
-    /* 星星按鈕 (鎖死大小與位置) */
+    /* 星星按鈕 (鎖死大小) */
     .btn-pin { 
         width: 46px; height: 46px; 
         border-radius: 50%; 
-        border: 2px solid #ddd; /* 加粗一點點讓它更清晰 */
+        border: 1px solid #ddd; 
         background: white; 
         color: #ccc; 
         font-size: 22px; 
@@ -129,7 +145,7 @@
         transition: all 0.2s;
         flex-shrink: 0; 
     }
-    .btn-pin:hover { background: #f8f9fa; }
+    .btn-pin:hover { background: #fff; transform: scale(1.05); }
     
     /* 星星顏色 (只變色) */
     .btn-pin.s-1 { color: #198754; border-color: #198754; } 
