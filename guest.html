@@ -6,146 +6,47 @@
   <title>來賓自助簽到</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* === 全域設定 (與主持人頁面風格一致) === */
-    body { 
-        background: #f4f4f4; 
-        padding: 20px; 
-        font-family: "Microsoft JhengHei", sans-serif; 
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* === 簽到卡片 === */
-    .checkin-card { 
-        background: white;
-        padding: 40px 30px;
-        border-radius: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-        max-width: 500px;
-        width: 100%;
-        text-align: center;
-    }
-
-    /* === 標題區 === */
+    body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .checkin-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 500px; width: 100%; text-align: center; }
     .emoji-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
     .main-title { font-size: 1.8rem; font-weight: 800; color: #333; margin-bottom: 5px; }
-    .sub-title { font-size: 1.1rem; color: #666; margin-bottom: 30px; font-weight: normal; }
-
-    /* === 輸入框美化 === */
-    .input-group-custom { margin-bottom: 15px; }
-    .form-control-lg {
-        background-color: #f0f2f5; 
-        border: none; 
-        border-radius: 12px; 
-        padding: 15px; 
-        font-size: 1.1rem; 
-        text-align: center; 
-    }
-    .form-control-lg:focus { 
-        background-color: #e4e6e9; 
-        box-shadow: none; 
-        outline: none; 
-    }
-
-    /* === 黑色按鈕 === */
-    .btn-submit { 
-        background: #000; 
-        color: white; 
-        border-radius: 12px; 
-        padding: 15px; 
-        font-weight: bold; 
-        font-size: 1.2rem; 
-        width: 100%; 
-        margin-top: 20px; 
-        transition: transform 0.1s;
-    }
-    .btn-submit:active { transform: scale(0.98); }
-
-    /* === 成功訊息 === */
+    .sub-title { font-size: 1.1rem; color: #666; margin-bottom: 30px; }
+    .form-control-lg { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1.1rem; text-align: center; margin-bottom: 15px; }
+    .btn-submit { background: #000; color: white; border-radius: 12px; padding: 15px; font-weight: bold; font-size: 1.2rem; width: 100%; margin-top: 20px; }
     #success-msg { display: none; margin-top: 20px; color: #198754; font-weight: bold; font-size: 1.2rem; }
   </style>
 </head>
 <body>
-
   <div class="checkin-card">
     <span class="emoji-icon">👋</span>
     <h1 class="main-title">歡迎蒞臨北屯區建功國小</h1>
     <h2 class="sub-title">66週年校慶暨社區運動會</h2>
-
-    <div class="input-group-custom">
-      <input type="text" id="input-job" class="form-control form-control-lg" placeholder="職稱 (如：董事長)">
-    </div>
-    <div class="input-group-custom">
-      <input type="text" id="input-name" class="form-control form-control-lg" placeholder="姓名">
-    </div>
-
+    <input type="text" id="input-job" class="form-control form-control-lg" placeholder="職稱 (如：董事長)">
+    <input type="text" id="input-name" class="form-control form-control-lg" placeholder="姓名">
     <button onclick="submitCheckIn()" class="btn btn-submit" id="btn-submit">簽到</button>
-    
     <div id="success-msg">🎉 簽到成功！歡迎您！</div>
   </div>
-
 <script>
-  // ⚠️⚠️⚠️ 請務必換成你最新的 GAS API 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 請換成最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   function submitCheckIn() {
     var job = document.getElementById('input-job').value.trim();
     var name = document.getElementById('input-name').value.trim();
-    var btn = document.getElementById('btn-submit');
-    var msg = document.getElementById('success-msg');
-
-    // 防呆：沒填名字不能送出
-    if (!name) { 
-        alert("請輸入您的姓名"); 
-        return; 
-    }
-
-    // UI 鎖定
-    btn.disabled = true;
-    btn.innerText = "處理中...";
-
-    // 傳送資料給後端 (GAS 會自動把它標記為 '待介紹' 並寫入報到時間)
-    fetch(API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ 
-            action: "checkIn", 
-            title: job, 
-            name: name 
-        }) 
-    })
-    .then(res => res.json())
-    .then(json => {
+    var btn = document.getElementById('btn-submit'); var msg = document.getElementById('success-msg');
+    if (!name) { alert("請輸入您的姓名"); return; }
+    btn.disabled = true; btn.innerText = "處理中...";
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: job, name: name }) })
+    .then(res => res.json()).then(json => {
         if(json.status === "success") {
-            // 顯示成功動畫
-            btn.style.display = 'none';
-            msg.style.display = 'block';
-            
-            // 2秒後重置，方便下一個人簽到
+            btn.style.display = 'none'; msg.style.display = 'block';
             setTimeout(() => {
-                document.getElementById('input-job').value = "";
-                document.getElementById('input-name').value = "";
-                btn.disabled = false;
-                btn.innerText = "簽到";
-                btn.style.display = 'block';
-                msg.style.display = 'none';
+                document.getElementById('input-job').value = ""; document.getElementById('input-name').value = "";
+                btn.disabled = false; btn.innerText = "簽到"; btn.style.display = 'block'; msg.style.display = 'none';
             }, 2000);
-        } else {
-            alert("系統錯誤：" + json.message);
-            btn.disabled = false;
-            btn.innerText = "簽到";
-        }
-    })
-    .catch(err => {
-        alert("連線失敗，請檢查網路");
-        console.error(err);
-        btn.disabled = false;
-        btn.innerText = "簽到";
+        } else { alert("錯誤：" + json.message); btn.disabled = false; btn.innerText = "簽到"; }
     });
   }
 </script>
-
 </body>
 </html>
