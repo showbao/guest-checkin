@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>主持人控制台</title>
+  <title>主持人控台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === 全域設定 === */
-    * { box-sizing: border-box; } /* 關鍵修正：確保邊框不會影響寬度計算 */
+    * { box-sizing: border-box; } /* 核心修正：鎖定盒模型 */
     
     body { 
         background: #f4f4f4; 
@@ -46,8 +46,9 @@
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; }
     
-    /* === 卡片樣式核心 (強制統一化) === */
+    /* === 卡片樣式核心 (絕對對齊版) === */
     .row-card { 
+        background: white; /* 統一遍白底 */
         border-radius: 12px; 
         padding: 20px 25px; 
         margin-bottom: 12px; 
@@ -56,39 +57,26 @@
         justify-content: space-between; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
         
-        /* 統一基礎設定：所有卡片預設都有 2px 邊框，預設為淺灰 */
-        border: 2px solid #e9ecef; 
-        background: white;
+        /* 🔧 關鍵修正：全部統一使用 3px 實線邊框 */
+        /* 這樣普通卡片和紅色卡片佔用的寬度才會一模一樣 */
+        border: 3px solid #e9ecef; 
         
         min-height: 110px;
         transition: all 0.2s ease; 
     }
     
-    /* === 權重配色系統 (只改顏色，不動尺寸) === */
+    /* === 權重顏色系統 (只改顏色，不動粗細) === */
+    /* Level 0: 一般 (淺灰框) */
+    .p-0 { border-color: #e9ecef; } 
     
-    /* Level 0: 一般 (維持基礎設定) */
-    .p-0 { 
-        background: white; 
-        border-color: #e9ecef; /* 淺灰框 */
-    } 
+    /* Level 1: 綠 (關注) - 綠框 */
+    .p-1 { border-color: #198754; } 
     
-    /* Level 1: 綠 (關注) */
-    .p-1 { 
-        background: #f0fff4; 
-        border-color: #198754; /* 綠框 */
-    } 
+    /* Level 2: 黃 (重要) - 黃框 */
+    .p-2 { border-color: #ffc107; } 
     
-    /* Level 2: 黃 (重要) */
-    .p-2 { 
-        background: #fffdf5; 
-        border-color: #ffc107; /* 黃框 */
-    } 
-    
-    /* Level 3: 紅 (緊急) */
-    .p-3 { 
-        background: #fff5f5; 
-        border-color: #dc3545; /* 紅框 */
-    } 
+    /* Level 3: 紅 (緊急) - 紅框 */
+    .p-3 { border-color: #dc3545; } 
     
     /* 已完成樣式 */
     .done { 
@@ -102,7 +90,7 @@
     .time { 
         color: #888; 
         font-size: 16px; 
-        width: 60px; 
+        width: 60px; /* 固定寬度，確保後面名字對齊 */
         font-weight: 500;
         flex-shrink: 0; 
     }
@@ -127,13 +115,13 @@
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     
-    /* 星星按鈕 (鎖死大小) */
+    /* 星星按鈕 (鎖死大小與位置) */
     .btn-pin { 
         width: 46px; height: 46px; 
         border-radius: 50%; 
-        border: 1px solid #ddd; 
+        border: 2px solid #ddd; /* 加粗一點點讓它更清晰 */
         background: white; 
-        color: #ddd; 
+        color: #ccc; 
         font-size: 22px; 
         display: flex; align-items: center; justify-content: center; 
         cursor: pointer; 
@@ -143,11 +131,12 @@
     }
     .btn-pin:hover { background: #f8f9fa; }
     
-    /* 星星顏色 */
-    .btn-pin.s-1 { color: #198754; border-color: #198754; background: white; } 
-    .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; background: white; } 
-    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; background: white; } 
+    /* 星星顏色 (只變色) */
+    .btn-pin.s-1 { color: #198754; border-color: #198754; } 
+    .btn-pin.s-2 { color: #ffc107; border-color: #ffc107; } 
+    .btn-pin.s-3 { color: #dc3545; border-color: #dc3545; } 
 
+    /* 按鈕樣式 */
     .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0;}
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
     
@@ -181,7 +170,7 @@
 
 </div>
 <script>
-  // ⚠️⚠️⚠️ 請務必確認這裡是否為最新的 GAS 網址 (如果有重新部署過，網址會變) ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 請務必確認這裡是否為最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; 
@@ -207,8 +196,7 @@
     .then(res => res.json())
     .then(json => {
       if(json.status === "error") { 
-        // 增加錯誤提示，幫助排查
-        alert("登入失敗：" + json.message + "\n(請檢查密碼是否正確，或 Sheet 設定頁名稱是否為 Settings)"); 
+        alert("登入失敗：" + json.message); 
         location.reload(); 
         return; 
       }
@@ -218,7 +206,6 @@
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     })
     .catch(err => {
-        alert("連線錯誤：請檢查您的 GAS 網址是否正確，或是否已重新部署。");
         console.error(err);
     });
   }
@@ -265,28 +252,20 @@
     if(target) {
       var currentP = target.priority || ( (target.isPinned === "TRUE" || target.isPinned === true) ? 1 : 0 );
       var newP = (currentP + 1) % 4;
-      
       target.priority = newP;
       target.isPinned = (newP > 0) ? "TRUE" : "FALSE"; 
-
       updateCardVisual(target); 
-      
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-      
       if(debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        render(localData); 
-      }, 1500);
+      debounceTimer = setTimeout(() => { render(localData); }, 1500);
     }
   }
 
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`);
     var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
-    
     card.classList.remove('p-0', 'p-1', 'p-2', 'p-3');
     btn.classList.remove('s-0', 's-1', 's-2', 's-3');
-    
     var pLevel = item.priority || 0;
     card.classList.add(`p-${pLevel}`);
     btn.classList.add(`s-${pLevel}`);
