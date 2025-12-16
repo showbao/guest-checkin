@@ -9,17 +9,29 @@
     body { background: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
     .nav-box { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 40px; width: 90%; max-width: 400px; text-align: center; }
     .btn-link { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 18px; transition: 0.2s; }
+    
+    /* 訪客按鈕：黑色 */
     .btn-guest { background: #000; color: white; }
+    .btn-guest:hover { background: #333; color: white; }
+    
+    /* 主持人按鈕：白色黑框 */
     .btn-admin { background: #fff; border: 2px solid #000; color: #000; }
-    .btn-settings { background: #f8f9fa; color: #666; font-size: 14px; margin-top: 10px; }
+    .btn-admin:hover { background: #f0f0f0; color: #000; }
+    
+    .footer-text { font-size: 12px; color: #999; margin-top: 20px; }
   </style>
 </head>
 <body>
   <div class="nav-box">
+    <div class="mb-4">
+      <img src="https://em-content.zobj.net/source/microsoft-teams/337/waving-hand_1f44b.png" width="40">
+    </div>
     <h2 class="mb-4">系統入口</h2>
+    
     <a href="guest.html" class="btn-link btn-guest">👤 訪客簽到</a>
     <a href="admin.html" class="btn-link btn-admin">🎤 主持人控台</a>
-    <a href="settings.html" class="btn-link btn-settings">⚙️ 系統設定</a>
+
+    <div class="footer-text">GuestLink System</div>
   </div>
 </body>
 </html>
