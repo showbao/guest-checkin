@@ -144,7 +144,7 @@
     .catch(err => { console.error(err); alert("連線錯誤"); btn.innerText = "進入系統"; btn.disabled = false; });
   }
 
-  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 5000); } // 改為 5 秒更新一次
+  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 20000); } // 改為 20 秒更新一次
   function manualUpdate() { fetchData(); startTimer(); }
   
   function fetchData() {
