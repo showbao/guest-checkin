@@ -10,28 +10,29 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
-    .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1rem, 4vw, 1.2rem); text-align: center; }
-    .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
-    
-    /* 搜尋框樣式 */
-    .search-container { margin-bottom: 20px; }
-    .search-box { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 1.2rem; transition: border-color 0.3s; }
-    .search-box:focus { border-color: #333; outline: none; }
+    /* 標題與導航 */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .school-header { font-weight: 700; color: #6c757d; font-size: 1.1rem; }
+    .btn-dashboard { background: #212529; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer;}
+    .btn-dashboard:hover { background: #000; }
 
-    .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
+    #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
     #main-app { display: none; width: 100%; }
+    .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 0 0 20px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
     
+    /* 搜尋框 */
+    .search-container { margin-bottom: 20px; }
+    .search-box { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 1.2rem; }
+
+    /* 卡片樣式 */
     .row-card { 
         border-radius: 12px; padding: 20px 25px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
-        background: white; min-height: 110px; transition: background-color 0.3s ease, box-shadow 0.3s ease; 
+        background: white; min-height: 110px; transition: all 0.3s ease; 
     }
-    
-    /* 權重樣式 */
     .level-0 { background: white; } 
     .level-1 { background: #f0fff4; } 
     .level-2 { background: #fffdf5; } 
@@ -42,32 +43,39 @@
     .done { opacity: 0.6; background: #f8f9fa !important; box-shadow: none !important; }
     .done .name { text-decoration: line-through; color: #777; }
 
-    .time { color: #888; font-size: 16px; min-width: 60px; text-align: left; font-weight: 500; flex-shrink: 0; }
     .info { flex: 1; padding: 0 15px; overflow: hidden; min-width: 0; } 
-    .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    .btn-pin { width: 46px; height: 46px; border-radius: 50%; border: none !important; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; flex-shrink: 0; outline: none; transition: all 0.2s; }
+    .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; }
+    .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; }
+    .time { color: #888; font-size: 16px; min-width: 60px; font-weight: 500; }
+
+    .btn-pin { width: 46px; height: 46px; border-radius: 50%; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; }
     .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } 
     .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } 
     .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } 
     .btn-pin.s-level-4 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; background: #ffebeb; }
 
-    .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0; transition: transform 0.1s; }
-    .btn-ok:active { transform: scale(0.95); }
-    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0; }
-    #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+    .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; }
+    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; }
+
+    /* === 戰情室 Modal 樣式 === */
+    .dashboard-group { margin-bottom: 30px; }
+    .group-title { font-size: 1.2rem; font-weight: bold; padding: 10px; border-bottom: 2px solid #333; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .dash-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+    .dash-status { width: 15px; height: 15px; border-radius: 50%; margin-right: 15px; flex-shrink: 0;}
+    .st-red { background: #dc3545; } /* 未到 */
+    .st-green { background: #198754; box-shadow: 0 0 5px #198754; } /* 已到 */
+    .st-black { background: #333; opacity: 0.3; } /* 已介紹 */
+    
+    .dash-info { flex: 1; }
+    .dash-name { font-weight: bold; font-size: 1.1rem; }
+    .dash-job { font-size: 0.9rem; color: #666; margin-right: 10px; }
+    .dash-btn { padding: 5px 15px; border-radius: 5px; border: none; font-size: 0.9rem; cursor: pointer; }
+    .btn-dash-checkin { background: #0d6efd; color: white; }
+    .btn-dash-intro { background: #198754; color: white; }
 
     @media (max-width: 576px) {
-        body { padding: 10px; }
         .row-card { padding: 15px 12px !important; min-height: 90px; }
-        .btn-pin { width: 40px; height: 40px; font-size: 18px; margin-right: 8px; }
-        .btn-ok { height: 40px; padding: 0 15px; font-size: 15px; }
-        .btn-undo { height: 40px; padding: 0 10px; font-size: 14px; }
-        .time { min-width: 50px; font-size: 14px; }
-        .info { padding: 0 10px; }
         .name { font-size: 22px; } 
-        .job { font-size: 14px; }
     }
   </style>
 </head>
@@ -79,36 +87,53 @@
     <input type="password" id="pwd" class="form-control input-custom" placeholder="請輸入密碼">
     <button onclick="manualLogin()" class="btn btn-login">進入系統</button>
   </div>
+
   <div id="main-app">
-    <div class="school-header" id="school-header-main" style="margin-top: 20px;"></div>
+    <div class="top-bar">
+        <div class="school-header" id="school-header-main"></div>
+        <button class="btn-dashboard" onclick="openDashboard()">📊 戰情總覽</button>
+    </div>
+    
     <h1 id="event-header" class="event-main-title"></h1> 
     
     <div class="search-container">
-        <input type="text" id="host-search" class="search-box" placeholder="🔍 快速搜尋現場名單..." onkeyup="renderSmart()">
+        <input type="text" id="host-search" class="search-box" placeholder="🔍 搜尋現場來賓..." onkeyup="renderSmart()">
     </div>
 
     <div id="toolbar">
       <div><h3 class="m-0" style="font-weight: 700;">🎤 現場名單</h3><small id="last-update" class="text-muted">等待同步...</small></div>
       <button onclick="manualUpdate()" class="btn btn-primary">🔄 立即更新</button>
     </div>
+    
     <div id="list"></div>
   </div>
 </div>
+
+<div class="modal fade" id="dashModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">📊 戰情總覽 (VIP名單)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body bg-light" id="dash-body">
+        <div class="text-center p-5">載入中...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
-  var PASSWORD = ""; 
-  var timer = null; 
-  var localData = []; 
-  var debounceTimer = null; 
+  var PASSWORD = ""; var timer = null; var localData = []; var levelNames = {}; var dashModal;
 
   document.addEventListener("DOMContentLoaded", function() {
+    dashModal = new bootstrap.Modal(document.getElementById('dashModal'));
     var storedPwd = sessionStorage.getItem('host_password');
-    if (storedPwd) {
-      document.getElementById('pwd').value = storedPwd;
-      setTimeout(manualLogin, 100); 
-    }
+    if (storedPwd) { document.getElementById('pwd').value = storedPwd; setTimeout(manualLogin, 100); }
   });
 
   function manualLogin() {
@@ -118,12 +143,9 @@
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
       if(json.status === "error") { 
-        alert("登入失敗：" + json.message); 
-        btn.innerText = "進入系統"; btn.disabled = false;
-        sessionStorage.removeItem('host_password');
-        return; 
+        alert("登入失敗"); btn.innerText = "進入系統"; btn.disabled = false;
+        sessionStorage.removeItem('host_password'); return; 
       }
-      
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
       document.querySelector('.container').style.justifyContent = 'flex-start';
@@ -134,138 +156,142 @@
              document.getElementById('school-header-main').innerText = json.settings.schoolName;
           }
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
+          if(json.settings.levelNames) levelNames = json.settings.levelNames;
       }
 
       localData = json.data; 
-      renderSmart(); // 使用智慧渲染
-      var now = new Date(); document.getElementById('last-update').innerText = "最後更新: " + now.toLocaleTimeString();
+      renderSmart(); 
       startTimer();
     })
     .catch(err => { console.error(err); alert("連線錯誤"); btn.innerText = "進入系統"; btn.disabled = false; });
   }
 
-  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 30000); } // 改為 30 秒更新一次
+  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 5000); }
   function manualUpdate() { fetchData(); startTimer(); }
-  
   function fetchData() {
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
       if(json.status === "error") { return; } 
-      localData = json.data; 
-      renderSmart(); // 使用智慧渲染
+      localData = json.data; renderSmart(); renderDashboard();
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
   
-  // 🔥 核心：智慧比對渲染 (Smart Diffing Render) 🔥
+  // 主畫面：只顯示現場自助報到 (Source=GUEST) 的待介紹/已介紹
   function renderSmart() {
     var list = document.getElementById('list'); 
     var keyword = document.getElementById('host-search').value.toLowerCase().trim();
 
-    // 1. 先複製一份資料來排序過濾
-    var displayData = [...localData];
+    // 過濾：只留 GUEST 來源，且狀態非未報到 (未報到的 GUEST 不存在)
+    // 或是 新報到的 VIP (Level 4) 也要在主畫面閃爍一下提醒主持人? 
+    // 需求說「主區域不用把預設來賓混入」，但如果 VIP 剛到，主持人應該要看到提醒。
+    // 折衷：主畫面顯示 GUEST + 所有 Level 4 (新報到)。
+    // 調整：依照您的需求「主畫面比較單純」，這裡只放 GUEST。
+    
+    var displayData = localData.filter(d => d.source === 'GUEST');
 
-    // 2. 搜尋過濾
     if (keyword) {
-        displayData = displayData.filter(d => 
-            d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword)
-        );
+        displayData = displayData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
     }
 
-    // 3. 排序 (待介紹 > 權重 > 時間)
     displayData.sort((a, b) => {
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-      var pA = a.priority || 0; var pB = b.priority || 0;
-      if (pA !== pB) return pB - pA; 
       var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-      if (tA < tB) return -1; if (tA > tB) return 1;
-      return 0; 
+      if (tA < tB) return -1; if (tA > tB) return 1; return 0; 
     });
 
-    if(displayData.length === 0) { 
-        list.innerHTML = "<div class='text-center p-4 text-muted'>無符合資料</div>"; 
-        return; 
-    }
-
-    // 4. 智慧 DOM 更新 (不清除 innerHTML，而是移動或更新元素)
-    // 標記目前在畫面上的卡片 ID
-    var existingIds = new Set();
+    // (以下是智慧渲染邏輯，與之前相同，略過重複註解)
+    var html = "";
+    if(displayData.length === 0) html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
     
+    // 這裡為了簡化，使用全重繪 (因為分流後資料量少，且戰情室才是重點)
+    list.innerHTML = "";
+    if(displayData.length === 0) { list.innerHTML = html; return; }
+
     displayData.forEach(item => {
-        var id = `card-${item.rowIndex}`;
-        existingIds.add(id);
-        var el = document.getElementById(id);
-        
         var isDone = item.status === "已介紹";
-        var pLevel = item.priority || 0;
         var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : "";
         var btnHtml = !isDone 
-            ? `<div class="btn-pin s-level-${pLevel}" onclick="cyclePriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markDone(${item.rowIndex})">介紹</button>` 
+            ? `<button class="btn-ok" onclick="markDone(${item.rowIndex})">介紹</button>` 
             : `<button class="btn-undo" onclick="undo(${item.rowIndex})">↩️ 回復</button>`;
-
-        if (!el) {
-            // 新卡片：建立並加入
-            var div = document.createElement('div');
-            div.id = id;
-            div.className = `row-card level-${pLevel} ${isDone ? 'done' : ''}`;
-            div.innerHTML = `
-              <div class="time">${timeDisplay}</div>
-              <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-              <div class="d-flex align-items-center">${btnHtml}</div>`;
-            list.appendChild(div); // 暫時加到最後，等等會排序
-        } else {
-            // 舊卡片：更新內容 (只動有變的)
-            // 更新 Class (顏色)
-            el.className = `row-card level-${pLevel} ${isDone ? 'done' : ''}`;
-            // 更新按鈕區 (避免一直重繪導致閃爍，這裡簡單暴力重寫 innerHTML，因為按鈕狀態單純)
-            // 為了極致防閃爍，可以比對 innerHTML，不同才寫入
-            var contentHtml = `
-              <div class="time">${timeDisplay}</div>
-              <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-              <div class="d-flex align-items-center">${btnHtml}</div>`;
-            if (el.innerHTML !== contentHtml) {
-                el.innerHTML = contentHtml;
-            }
-        }
         
-        // 排序關鍵：把這個元素 append 到 list 的最後面
-        // 因為我們是依照正確順序 loop 的，所以 appendChild 會把它「移動」到正確的順序位置
-        list.appendChild(document.getElementById(id));
-    });
-
-    // 5. 移除不在新名單中的舊卡片
-    Array.from(list.children).forEach(child => {
-        if (child.id && !existingIds.has(child.id)) {
-            child.remove();
-        }
+        // 主畫面不需要星星，因為是流水帳
+        var card = document.createElement('div');
+        card.className = `row-card ${isDone ? 'done' : ''}`;
+        card.innerHTML = `<div class="time">${timeDisplay}</div>
+          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
+          <div class="d-flex align-items-center">${btnHtml}</div>`;
+        list.appendChild(card);
     });
   }
 
-  function cyclePriority(rowIndex) {
-    var target = localData.find(d => d.rowIndex == rowIndex);
-    if(target) {
-      var currentP = target.priority || 0;
-      var newP = (currentP === 4) ? 1 : (currentP + 1) % 4;
-      target.priority = newP; 
-      renderSmart(); // 本地先更新
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-      // 點擊當下暫停自動更新 2 秒，避免手被移開
-      if(timer) clearInterval(timer);
-      setTimeout(startTimer, 2000);
-    }
+  // --- 戰情室功能 ---
+  function openDashboard() {
+      renderDashboard();
+      dashModal.show();
+  }
+
+  function renderDashboard() {
+      var dashBody = document.getElementById('dash-body');
+      // 過濾：排除自助報到 (GUEST)，只顯示 Sheet 名單 + 補登 (RECEPTION)
+      var vipData = localData.filter(d => d.source !== 'GUEST');
+      
+      // 分組 (3, 2, 1, 0)
+      var groups = { 3: [], 2: [], 1: [], 0: [] };
+      vipData.forEach(d => {
+          var lvl = d.originLevel !== undefined ? d.originLevel : 0;
+          if(groups[lvl]) groups[lvl].push(d); else groups[0].push(d);
+      });
+
+      var html = "";
+      // 依序渲染 Level 3 -> 0
+      [3, 2, 1, 0].forEach(lvl => {
+          var groupName = levelNames[lvl] || "貴賓";
+          var items = groups[lvl];
+          if(items.length === 0) return;
+
+          html += `<div class="dashboard-group">
+            <div class="group-title"><span>${groupName}</span> <span class="badge bg-secondary">${items.length}</span></div>`;
+          
+          items.forEach(item => {
+              var statusClass = "st-red"; // 未報到
+              var btnHtml = `<button class="dash-btn btn-dash-checkin" onclick="receptionCheckIn(${item.rowIndex})">報到</button>`;
+              
+              if(item.status === "待介紹") {
+                  statusClass = "st-green"; // 已到
+                  btnHtml = `<button class="dash-btn btn-dash-intro" onclick="markDone(${item.rowIndex})">介紹</button>`;
+              } else if(item.status === "已介紹") {
+                  statusClass = "st-black"; // 結束
+                  btnHtml = `<small class="text-muted">已完成</small>`;
+              }
+
+              html += `<div class="dash-row">
+                <div class="dash-status ${statusClass}"></div>
+                <div class="dash-info"><span class="dash-job">${item.title}</span><span class="dash-name">${item.name}</span></div>
+                <div>${btnHtml}</div>
+              </div>`;
+          });
+          html += `</div>`;
+      });
+      dashBody.innerHTML = html;
+  }
+
+  function receptionCheckIn(rowIndex) {
+      // 模擬接待端報到
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: "CHECKIN" }) })
+      .then(() => fetchData());
   }
 
   function markDone(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex); 
     if(target) { target.status = "已介紹"; target.priority = 0; }
-    renderSmart();
+    renderSmart(); renderDashboard();
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
   }
-
+  
   function undo(rowIndex) {
-    var target = localData.find(d => d.rowIndex == rowIndex); 
-    if(target) { target.status = "待介紹"; }
+    var target = localData.find(d => d.rowIndex == rowIndex); if(target) { target.status = "待介紹"; }
     renderSmart();
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
   }
