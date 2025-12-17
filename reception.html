@@ -24,7 +24,9 @@
     .add-area { border-top: 1px dashed #ddd; padding-top: 15px; }
     .add-label { font-weight: bold; color: #666; margin-bottom: 8px; display: block; font-size: 0.9rem; }
 
-    .section-title { font-size: 1.2rem; font-weight: bold; margin: 20px 0 10px 0; color: #555; border-left: 5px solid #000; padding-left: 10px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-left: 5px solid #000; padding-left: 10px; }
+    .section-title { font-size: 1.2rem; font-weight: bold; color: #555; }
+    .btn-refresh { font-size: 0.9rem; padding: 5px 15px; border-radius: 20px; background: #6c757d; color: white; border: none; font-weight: bold; }
 
     .row-card { 
         border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
@@ -37,9 +39,15 @@
     .job { font-size: 14px; color: #666; display: block; }
     .name { font-size: 20px; font-weight: 800; color: #000; }
 
-    .btn-checkin { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 50px; font-weight: bold; min-width: 80px; } /* 紅色未報到 */
-    .btn-undo { background: #ffc107; color: #333; border: none; padding: 8px 20px; border-radius: 50px; font-size: 14px; min-width: 80px; } /* 黃色回復 */
+    .btn-checkin { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 50px; font-weight: bold; min-width: 80px; }
+    .btn-undo { background: #ffc107; color: #333; border: none; padding: 8px 20px; border-radius: 50px; font-size: 14px; min-width: 80px; }
     .btn-add { background: #212529; color: white; font-weight: bold; border-radius: 8px; }
+
+    @media (max-width: 576px) {
+        .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
+        .row-card { padding: 15px; min-height: 90px; }
+        .name { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -58,7 +66,13 @@
   <h1 id="event-header" class="event-main-title"></h1>
 
   <div class="tools-container">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span style="font-weight:bold; color:#666;">資料同步</span>
+        <button onclick="manualLogin()" class="btn-refresh">🔄 立即更新</button>
+    </div>
+
     <input type="text" id="search" class="form-control search-box" placeholder="🔍 搜尋姓名或職稱..." onkeyup="filterList()">
+    
     <div class="add-area">
       <span class="add-label">➕ 現場補登 (名單外貴賓)</span>
       <div class="row g-2">
@@ -69,15 +83,15 @@
     </div>
   </div>
 
-  <div class="section-title">🛑 未報到名單</div>
+  <div class="section-header"><span class="section-title">🛑 未報到名單</span></div>
   <div id="list-pending"></div>
 
-  <div class="section-title">✅ 已報到名單</div>
+  <div class="section-header"><span class="section-title">✅ 已報到名單</span></div>
   <div id="list-arrived"></div>
 </div>
 
 <script>
-  // ⚠️⚠️⚠️ 記得換成最新的 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = "";
@@ -90,15 +104,21 @@
 
   function manualLogin() {
     PASSWORD = document.getElementById('pwd').value;
-    document.querySelector('.btn-login').innerText = "驗證中...";
-    document.querySelector('.btn-login').disabled = true;
+    var btn = document.querySelector('.btn-login');
+    // 如果按鈕存在才操作 (因為手動更新時可能沒有這個按鈕)
+    if(btn) { btn.innerText = "驗證中..."; btn.disabled = true; }
+    
+    // 如果是手動更新按鈕
+    var refreshBtn = document.querySelector('.btn-refresh');
+    if(refreshBtn) { refreshBtn.innerText = "..."; refreshBtn.disabled = true; }
 
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
+      if(refreshBtn) { refreshBtn.innerText = "🔄 立即更新"; refreshBtn.disabled = false; }
+      if(btn) { btn.innerText = "進入系統"; btn.disabled = false; }
+
       if(json.status === "error") { 
         alert("登入失敗：" + json.message);
-        document.querySelector('.btn-login').innerText = "進入系統";
-        document.querySelector('.btn-login').disabled = false;
         sessionStorage.removeItem('reception_password');
         return; 
       }
@@ -117,7 +137,11 @@
       allGuests = json.data; 
       renderLists(allGuests);
     })
-    .catch(err => { console.error(err); alert("連線錯誤"); });
+    .catch(err => { 
+        console.error(err); alert("連線錯誤"); 
+        if(refreshBtn) { refreshBtn.innerText = "🔄 立即更新"; refreshBtn.disabled = false; }
+        if(btn) { btn.innerText = "進入系統"; btn.disabled = false; }
+    });
   }
 
   function renderLists(data) {
@@ -126,20 +150,13 @@
     pendingDiv.innerHTML = "";
     arrivedDiv.innerHTML = "";
     
-    // 1. 未報到 (Status="未報到")
     var pendingList = data.filter(d => d.status === "未報到");
-    // 排序：依 rowIndex (Sheet 順序)
     pendingList.sort((a, b) => a.rowIndex - b.rowIndex);
 
-    // 2. 已報到 (Status="待介紹" 或 "已介紹")
-    // 🔥 過濾：不顯示 Source="GUEST" (自助簽到) 的人
     var arrivedList = data.filter(d => (d.status === "待介紹" || d.status === "已介紹") && d.source !== "GUEST");
-    // 排序：依 CheckInTime (新到舊)
     arrivedList.sort((a, b) => {
-        // 若無時間則視為很舊
         var timeA = a.checkInTime || "00:00:00"; 
         var timeB = b.checkInTime || "00:00:00";
-        // 字串比較 (HH:mm:ss)，大的在上面
         if (timeA < timeB) return 1;
         if (timeA > timeB) return -1;
         return 0;
@@ -167,54 +184,37 @@
   function filterList() {
     var keyword = document.getElementById('search').value.toLowerCase().trim();
     if(!keyword) { renderLists(allGuests); return; }
-    
-    var filtered = allGuests.filter(d => 
-      d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword)
-    );
+    var filtered = allGuests.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
     renderLists(filtered); 
   }
 
   function toggleStatus(rowIndex, type) {
-    // Optimistic UI Update
     var target = allGuests.find(g => g.rowIndex == rowIndex);
     if (target) {
         if (type === "CHECKIN") {
             target.status = "待介紹";
-            // 補上現在時間作為排序用 (暫時)
-            var now = new Date();
-            var timeStr = now.toTimeString().split(' ')[0];
-            target.checkInTime = timeStr;
+            var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0];
         } else {
-            target.status = "未報到";
-            target.checkInTime = "";
+            target.status = "未報到"; target.checkInTime = "";
         }
     }
-    
     var keyword = document.getElementById('search').value.trim();
     if(keyword) filterList(); else renderLists(allGuests);
-
-    fetch(API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) 
-    });
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) });
   }
 
   function addNew() {
     var title = document.getElementById('new-job').value;
     var name = document.getElementById('new-name').value;
     if(!name) { alert("請輸入姓名"); return; }
-    
     if(confirm(`確認新增並報到：\n${title} ${name} ？`)) {
         var btn = document.querySelector('.btn-add');
         var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
-
-        // 補登 isReception = true
         fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name, isReception: true }) })
         .then(() => {
             alert("新增成功！");
-            document.getElementById('new-job').value=""; 
-            document.getElementById('new-name').value=""; 
-            manualLogin(); // Refresh
+            document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; 
+            manualLogin(); 
             btn.innerText = orgText; btn.disabled = false;
         });
     }
