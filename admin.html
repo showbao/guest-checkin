@@ -6,49 +6,55 @@
   <title>主持人控台</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* === 全域設定 === */
     * { box-sizing: border-box; } 
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    /* 登入區 */
     #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
-    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; letter-spacing: 1px; text-align: center;}
+    
+    /* 響應式字體 */
+    .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1rem, 4vw, 1.2rem); text-align: center; }
+    .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
+
     .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
-    /* 標題區 (RWD) */
     #main-app { display: none; width: 100%; }
-    .event-main-title { font-size: 2.8rem; font-weight: 800; color: #212529; text-align: center; margin: 10px 0 25px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    /* 卡片核心 (幽靈邊框 + 幾何鎖定) */
     .row-card { 
         border-radius: 12px; padding: 20px 25px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; 
-        border: none !important; 
-        box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); /* 幽靈邊框 */
+        border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
         background: white; min-height: 110px; transition: background-color 0.2s ease; 
     }
     
-    /* 權重底色 (level-X) */
+    /* 權重樣式 */
     .level-0 { background: white; } 
     .level-1 { background: #f0fff4; } 
     .level-2 { background: #fffdf5; } 
     .level-3 { background: #fef2f2; } 
-    .done { opacity: 0.6; background: #f8f9fa !important; }
+    /* 🔥 新報到置頂樣式 (Level 4) */
+    .level-4 { 
+        background: #fff; 
+        box-shadow: 0 0 0 4px #dc3545, 0 4px 15px rgba(220,53,69,0.3) !important; 
+        animation: flashBorder 2s infinite;
+    }
+    @keyframes flashBorder { 0% { border-color: #dc3545; } 50% { border-color: #ff8787; } 100% { border-color: #dc3545; } }
+
+    .done { opacity: 0.6; background: #f8f9fa !important; box-shadow: none !important; }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* 內容排版 */
     .time { color: #888; font-size: 16px; min-width: 60px; text-align: left; font-weight: 500; flex-shrink: 0; }
     .info { flex: 1; padding: 0 15px; overflow: hidden; min-width: 0; } 
     .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    /* 星星按鈕 */
     .btn-pin { width: 46px; height: 46px; border-radius: 50%; border: none !important; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; flex-shrink: 0; outline: none;}
     .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } 
     .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } 
     .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } 
+    /* Level 4 的星星也設為紅色 */
+    .btn-pin.s-level-4 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; background: #ffebeb; }
 
     .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; flex-shrink: 0;}
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; flex-shrink: 0;}
@@ -56,7 +62,6 @@
 
     @media (max-width: 576px) {
         body { padding: 10px; }
-        .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
         .row-card { padding: 15px 12px !important; min-height: 90px; }
         .btn-pin { width: 40px; height: 40px; font-size: 18px; margin-right: 8px; }
         .btn-ok { height: 40px; padding: 0 15px; font-size: 15px; }
@@ -71,14 +76,13 @@
 <body>
 <div class="container">
   <div id="login-box">
-    <div class="school-header">北屯區建功國小</div>
-    <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+    <div class="school-header">載入中...</div>
     <div class="login-title">管控端登入</div>
     <input type="password" id="pwd" class="form-control input-custom" placeholder="請輸入密碼">
     <button onclick="manualLogin()" class="btn btn-login">進入系統</button>
   </div>
   <div id="main-app">
-    <div class="school-header" style="margin-top: 20px;">北屯區建功國小</div>
+    <div class="school-header" id="school-header-main" style="margin-top: 20px;"></div>
     <h1 id="event-header" class="event-main-title"></h1> 
     <div id="toolbar">
       <div><h3 class="m-0" style="font-weight: 700;">🎤 現場名單</h3><small id="last-update" class="text-muted">等待同步...</small></div>
@@ -88,57 +92,50 @@
   </div>
 </div>
 <script>
-  // ⚠️⚠️⚠️ 這裡請換成你最新的 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 記得換成最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var debounceTimer = null; 
 
-  // ★★★ 修正點：使用 DOMContentLoaded 確保更穩定觸發 ★★★
   document.addEventListener("DOMContentLoaded", function() {
     var storedPwd = sessionStorage.getItem('host_password');
     if (storedPwd) {
       document.getElementById('pwd').value = storedPwd;
-      // 稍微延遲 100 毫秒，確保瀏覽器填入數值後才按下登入
       setTimeout(manualLogin, 100); 
     }
   });
 
   function manualLogin() {
     PASSWORD = document.getElementById('pwd').value;
-    
-    // UI 回饋
-    var btn = document.querySelector('.btn-login');
-    btn.innerText = "驗證中...";
-    btn.disabled = true;
+    var btn = document.querySelector('.btn-login'); btn.innerText = "驗證中..."; btn.disabled = true;
     
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
       if(json.status === "error") { 
-        alert("登入失敗：" + json.message + "\n(請確認密碼是否正確)"); 
-        // 恢復按鈕狀態
-        btn.innerText = "進入系統";
-        btn.disabled = false;
-        // 清除暫存密碼，避免無限循環錯誤
+        alert("登入失敗：" + json.message); 
+        btn.innerText = "進入系統"; btn.disabled = false;
         sessionStorage.removeItem('host_password');
         return; 
       }
       
-      // 成功登入
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
       document.querySelector('.container').style.justifyContent = 'flex-start';
       
+      // 更新標題
+      if(json.settings) {
+          if(json.settings.schoolName) {
+             document.querySelector('#login-box .school-header').innerText = json.settings.schoolName;
+             document.getElementById('school-header-main').innerText = json.settings.schoolName;
+          }
+          if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
+      }
+
       localData = json.data; render(localData); 
-      if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); document.getElementById('last-update').innerText = "最後更新: " + now.toLocaleTimeString();
       startTimer();
     })
-    .catch(err => {
-        alert("連線錯誤，請檢查網路");
-        console.error(err);
-        btn.innerText = "進入系統";
-        btn.disabled = false;
-    });
+    .catch(err => { console.error(err); alert("連線錯誤"); btn.innerText = "進入系統"; btn.disabled = false; });
   }
 
   function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 120000); }
@@ -149,44 +146,71 @@
     .then(res => res.json()).then(json => {
       if(json.status === "error") { return; } 
       localData = json.data; render(localData); 
-      if(json.eventName) document.getElementById('event-header').innerText = json.eventName;
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
   
   function render(data) {
     var list = document.getElementById('list'); list.innerHTML = "";
+    
+    // 排序核心邏輯
     data.sort((a, b) => {
+      // 1. 待介紹 > 已介紹
       if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
+      
+      // 2. 權重比較 (Level 4 最優先, 4 > 3 > 2 > 1 > 0)
       var pA = a.priority || 0; var pB = b.priority || 0;
-      if (pA !== pB) return pB - pA; return a.rowIndex - b.rowIndex; 
+      if (pA !== pB) return pB - pA; // 大的在上面
+      
+      // 3. 報到時間比較 (CheckInTime) - 字串 HH:mm:ss 比較
+      // 一般來說，主持人想依序介紹，所以「早報到的(小)」在上面
+      var tA = a.checkInTime || "99:99:99";
+      var tB = b.checkInTime || "99:99:99";
+      if (tA < tB) return -1;
+      if (tA > tB) return 1;
+      
+      return 0; 
     });
+
     if(data.length === 0) { list.innerHTML = "<div class='text-center p-4 text-muted'>目前沒有待介紹的來賓</div>"; return; }
+    
     data.forEach(item => {
       var isDone = item.status === "已介紹";
       var pLevel = item.priority || 0;
       var cls = `row-card level-${pLevel} ${isDone ? 'done' : ''}`; 
-      var timeParts = item.time.split(":"); var shortTime = timeParts.length >= 2 ? (timeParts[0] + ":" + timeParts[1]) : item.time;
+      
+      // 這裡直接顯示 CheckInTime
+      var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : ""; 
+
       var html = `<div class="${cls}" id="card-${item.rowIndex}">
-          <div class="time">${shortTime}</div><div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
+          <div class="time">${timeDisplay}</div>
+          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
           <div class="d-flex align-items-center">
             ${!isDone ? `<div class="btn-pin s-level-${pLevel}" id="btn-pin-${item.rowIndex}" onclick="cyclePriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markDone(${item.rowIndex})">介紹</button>` : `<button class="btn-undo" onclick="undo(${item.rowIndex})">↩️ 回復</button>`}
           </div></div>`;
       list.innerHTML += html;
     });
   }
+
   function cyclePriority(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex);
     if(target) {
-      var newP = ((target.priority || 0) + 1) % 4;
+      // 邏輯: 如果現在是 4 (新報到), 按一下變成 1 (綠). 其他 0->1->2->3->0
+      var currentP = target.priority || 0;
+      var newP = (currentP === 4) ? 1 : (currentP + 1) % 4;
+      
       target.priority = newP; updateCardVisual(target); 
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
+      
+      // 重新排序
       if(debounceTimer) clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { render(localData); }, 1500);
     }
   }
+
   function updateCardVisual(item) {
     var card = document.getElementById(`card-${item.rowIndex}`); var btn = document.getElementById(`btn-pin-${item.rowIndex}`);
-    card.classList.remove('level-0', 'level-1', 'level-2', 'level-3'); btn.classList.remove('s-level-0', 's-level-1', 's-level-2', 's-level-3');
+    card.classList.remove('level-0', 'level-1', 'level-2', 'level-3', 'level-4'); 
+    btn.classList.remove('s-level-0', 's-level-1', 's-level-2', 's-level-3', 's-level-4');
     card.classList.add(`level-${item.priority}`); btn.classList.add(`s-level-${item.priority}`);
   }
   function markDone(rowIndex) {
