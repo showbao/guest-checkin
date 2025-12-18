@@ -21,7 +21,6 @@
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
     
-    /* 主畫面 (隱藏直到登入) */
     #main-app { display: none; width: 100%; }
     
     /* 搜尋與工具列 */
@@ -30,7 +29,7 @@
     .search-box:focus { border-color: #333; outline: none; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
 
-    /* === 卡片樣式 (幽靈邊框) === */
+    /* === 主畫面卡片樣式 === */
     .row-card { 
         border-radius: 12px; padding: 20px 25px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
@@ -42,53 +41,52 @@
     .done { opacity: 0.6; background: #f8f9fa !important; box-shadow: none !important; }
     .done .name { text-decoration: line-through; color: #777; }
 
-    /* 卡片內容 */
     .time { color: #888; font-size: 16px; min-width: 60px; text-align: left; font-weight: 500; flex-shrink: 0; }
     .info { flex: 1; padding: 0 15px; overflow: hidden; min-width: 0; } 
     .job { font-size: 16px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-size: 28px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    /* 按鈕元件 */
     .btn-pin { width: 46px; height: 46px; border-radius: 50%; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 12px; }
     .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; } .btn-pin.s-level-4 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; background: #ffebeb; }
     .btn-ok { background: #198754; color: white; border: none; padding: 0 25px; border-radius: 10px; font-size: 18px; cursor: pointer; height: 46px; font-weight: bold; }
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 46px; }
 
-    /* === 戰情室 Modal 樣式 (升級版) === */
+    /* === 戰情室 Modal 優化版 === */
     .modal-header { border-bottom: 1px solid #444; }
     .section-header { 
-        padding: 10px 15px; background: #e9ecef; font-weight: bold; color: #555; 
+        padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
-        border-left: 5px solid #666; margin-top: 20px;
+        border-left: 5px solid #666; margin-top: 25px; margin-bottom: 15px; border-radius: 0 8px 8px 0;
     }
     .section-header.active-zone { background: #e8f5e9; border-left-color: #198754; color: #198754; }
     
-    .dash-group-title { font-size: 0.9rem; color: #888; margin: 10px 0 5px 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;}
+    .dash-group-title { font-size: 1rem; color: #333; margin: 15px 5px 10px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
 
-    .dash-row { 
-        display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; background: white; 
-        transition: all 0.3s ease; /* 動畫關鍵 */
+    /* 戰情室卡片化設計 */
+    .dashboard-card {
+        background: white; border-radius: 12px; padding: 15px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 10px; transition: all 0.3s;
     }
-    /* 狀態燈號 */
-    .dash-status { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; flex-shrink: 0; }
-    .st-red { background: #dc3545; box-shadow: 0 0 3px #dc3545; } /* 未到 */
-    .st-green { background: #198754; box-shadow: 0 0 6px #198754; transform: scale(1.2); } /* 待介紹 */
-    .st-gray { background: #ccc; } /* 已介紹 */
+    .dashboard-card.is-done { background: #f9f9f9; opacity: 0.7; }
+    .dashboard-card.is-done .dash-name { text-decoration: line-through; color: #999; }
 
-    .dash-info { flex: 1; }
-    .dash-name { font-weight: bold; font-size: 1.2rem; color: #333; }
-    .dash-job { font-size: 0.9rem; color: #666; margin-right: 10px; }
+    .dash-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .dash-job { font-size: 0.9rem; color: #666; margin-bottom: 2px; }
+    .dash-name { font-weight: 800; font-size: 1.3rem; color: #000; line-height: 1.2;}
     
-    /* 戰情室按鈕 */
-    .dash-btn { padding: 6px 20px; border-radius: 20px; border: none; font-size: 0.95rem; cursor: pointer; font-weight: bold; min-width: 80px; transition: transform 0.1s;}
+    .dash-btn { padding: 8px 20px; border-radius: 50px; border: none; font-size: 0.95rem; cursor: pointer; font-weight: bold; min-width: 90px; transition: transform 0.1s;}
     .dash-btn:active { transform: scale(0.95); }
-    .btn-dash-checkin { background: #0d6efd; color: white; } /* 藍色報到 */
+    
+    .btn-dash-checkin { background: #0d6efd; color: white; } /* 藍色待報到 */
     .btn-dash-intro { background: #198754; color: white; box-shadow: 0 4px 10px rgba(25,135,84,0.3); } /* 綠色介紹 */
-    .btn-dash-done { background: transparent; color: #aaa; border: 1px solid #ddd; cursor: default; } /* 已介紹 */
-
-    /* 已介紹的樣式 */
-    .dash-row.is-done .dash-name { text-decoration: line-through; color: #999; }
-    .dash-row.is-done { background: #fafafa; }
+    
+    /* 狀態小圓點 */
+    .dash-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 15px; flex-shrink: 0; }
+    .dot-red { background: #dc3545; }
+    .dot-green { background: #198754; box-shadow: 0 0 5px #198754; }
+    .dot-gray { background: #ccc; }
 
     @media (max-width: 576px) { .row-card { padding: 15px 12px !important; min-height: 90px; } .name { font-size: 22px; } }
   </style>
@@ -129,7 +127,7 @@
         <h5 class="modal-title">📊 戰情總覽 (VIP名單)</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body bg-light p-0" id="dash-body" style="overflow-y: auto;">
+      <div class="modal-body bg-light" id="dash-body" style="padding: 20px; overflow-y: auto;">
         <div class="text-center p-5">載入中...</div>
       </div>
     </div>
@@ -138,7 +136,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var levelNames = {}; var dashModal;
@@ -187,7 +185,6 @@
     .then(res => res.json()).then(json => {
       if(json.status === "error") { return; } 
       localData = json.data; renderSmart(); 
-      // 如果戰情室是開著的，也要更新戰情室
       if(document.getElementById('dashModal').classList.contains('show')) {
           renderDashboard();
       }
@@ -195,12 +192,10 @@
     });
   }
   
-  // === 主畫面 (只顯示現場自助報到 GUEST) ===
+  // === 主畫面 (GUEST) ===
   function renderSmart() {
     var list = document.getElementById('list'); 
     var keyword = document.getElementById('host-search').value.toLowerCase().trim();
-
-    // 只抓 GUEST
     var displayData = localData.filter(d => d.source === 'GUEST');
 
     if (keyword) {
@@ -216,7 +211,6 @@
     var html = "";
     if(displayData.length === 0) html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
     
-    // 這裡用重繪 (因為主畫面單純)
     list.innerHTML = "";
     if(displayData.length === 0) { list.innerHTML = html; return; }
 
@@ -244,24 +238,21 @@
 
   function renderDashboard() {
       var dashBody = document.getElementById('dash-body');
-      
-      // 1. 資料源：只抓 Sheet 名單 + 補登 (排除 GUEST)
+      // 只顯示 VIP 名單
       var vipData = localData.filter(d => d.source !== 'GUEST');
       
-      // 2. 分區邏輯
-      // Zone A: 待介紹 (Active)
+      // 分區：Active (待介紹) vs Roster (未報到+已介紹)
       var activeData = vipData.filter(d => d.status === "待介紹");
-      // Zone B: 其他 (未報到 + 已介紹)
       var rosterData = vipData.filter(d => d.status !== "待介紹");
 
       var html = "";
 
-      // --- 渲染上層：已到現場區 (依等級高->低排序) ---
+      // --- 1. 已到現場 (待介紹) ---
       html += `<div class="section-header active-zone">📣 已到現場 (待介紹) <span class="badge bg-success ms-2">${activeData.length}</span></div>`;
       if(activeData.length === 0) {
           html += `<div class="text-center p-4 text-muted">目前無人等待介紹</div>`;
       } else {
-          // 排序：等級高在先(3>2>1>0) -> 同等級依報到時間(早到先)
+          // 排序: 等級 > 報到時間
           activeData.sort((a, b) => {
               var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
               if (lvlA !== lvlB) return lvlB - lvlA;
@@ -269,77 +260,86 @@
               if (tA < tB) return -1; if (tA > tB) return 1; return 0;
           });
           
-          // 分組渲染
+          html += `<div class="row g-2">`;
           [3, 2, 1, 0].forEach(lvl => {
               var items = activeData.filter(d => (d.originLevel || 0) === lvl);
               if (items.length > 0) {
                   var groupName = levelNames[lvl] || "貴賓";
-                  html += `<div class="dash-group-title">${groupName}</div>`;
-                  items.forEach(item => html += createDashRow(item, "INTRO"));
+                  html += `<div class="col-12"><div class="dash-group-title">${groupName}</div></div>`;
+                  items.forEach(item => html += createDashCard(item, "INTRO"));
               }
           });
+          html += `</div>`;
       }
 
-      // --- 渲染下層：未到/已介紹名冊 (依等級高->低排序) ---
-      html += `<div class="section-header">📋 完整名冊 (未到/已完成)</div>`;
+      // --- 2. 完整名冊 (未報到 + 已介紹) ---
+      html += `<div class="section-header">📋 完整名冊 (待報到 / 已完成)</div>`;
       
-      // 排序：等級高在先 -> 同等級依 Google Sheet 順序
-      // 並且把「未報到」排在「已介紹」前面
+      // 排序: 等級 > 狀態 (待報到 > 已介紹) > Sheet順序
       rosterData.sort((a, b) => {
           var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
           if (lvlA !== lvlB) return lvlB - lvlA;
-          // 狀態比較：未報到(-1) > 已介紹(1)
-          var stA = a.status === "未報到" ? -1 : 1;
-          var stB = b.status === "未報到" ? -1 : 1;
+          
+          var stA = (a.status === "未報到") ? 1 : 2; // 未報到=1, 已介紹=2 (小的排前面)
+          var stB = (b.status === "未報到") ? 1 : 2;
           if (stA !== stB) return stA - stB;
+          
           return a.rowIndex - b.rowIndex;
       });
 
-      // 分組渲染
+      html += `<div class="row g-2">`;
       [3, 2, 1, 0].forEach(lvl => {
           var items = rosterData.filter(d => (d.originLevel || 0) === lvl);
           if (items.length > 0) {
               var groupName = levelNames[lvl] || "貴賓";
-              html += `<div class="dash-group-title">${groupName}</div>`;
-              items.forEach(item => html += createDashRow(item, "ROSTER"));
+              html += `<div class="col-12"><div class="dash-group-title">${groupName}</div></div>`;
+              items.forEach(item => html += createDashCard(item, "ROSTER"));
           }
       });
+      html += `</div>`;
 
       dashBody.innerHTML = html;
   }
 
-  function createDashRow(item, type) {
-      var statusClass, btnHtml, rowClass = "";
+  function createDashCard(item, type) {
+      var dotClass, btnHtml, cardClass = "dashboard-card";
       
       if (item.status === "未報到") {
-          statusClass = "st-red";
-          // 按下「報到」-> 呼叫 receptionAction 模擬接待端行為
-          btnHtml = `<button class="dash-btn btn-dash-checkin" onclick="dashboardAction(${item.rowIndex}, 'CHECKIN')">報到</button>`;
+          dotClass = "dot-red";
+          btnHtml = `<button class="dash-btn btn-dash-checkin" onclick="dashboardAction(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
       } else if (item.status === "待介紹") {
-          statusClass = "st-green";
-          // 按下「介紹」-> 標記為已介紹 (Done)
+          dotClass = "dot-green";
           btnHtml = `<button class="dash-btn btn-dash-intro" onclick="dashboardAction(${item.rowIndex}, 'DONE')">介紹</button>`;
       } else { // 已介紹
-          statusClass = "st-gray";
-          rowClass = "is-done";
-          // 按下「回復」-> 變回待介紹? 或是未報到? 
-          // 這裡設定為回復到「待介紹」(Undo Done)，這樣比較安全，若要取消報到需去接待端
-          btnHtml = `<button class="dash-btn" style="font-size:0.8rem; background:#eee;" onclick="dashboardAction(${item.rowIndex}, 'UNDO_DONE')">回復</button>`;
+          dotClass = "dot-gray";
+          cardClass += " is-done";
+          btnHtml = `<small class="text-muted fw-bold">已完成</small>`;
       }
 
-      return `<div class="dash-row ${rowClass}">
-        <div class="dash-status ${statusClass}"></div>
-        <div class="dash-info"><span class="dash-job">${item.title}</span><span class="dash-name">${item.name}</span></div>
-        <div>${btnHtml}</div>
+      // 使用 col-md-6 讓電腦版變成兩欄，手機維持一欄
+      return `<div class="col-12 col-md-6">
+          <div class="${cardClass}">
+            <div class="d-flex align-items-center">
+                <div class="dash-dot ${dotClass}"></div>
+                <div class="dash-info">
+                    <span class="dash-job">${item.title}</span>
+                    <span class="dash-name">${item.name}</span>
+                </div>
+            </div>
+            <div>${btnHtml}</div>
+          </div>
       </div>`;
   }
 
-  // 統一處理戰情室動作 (即時反應)
+  // ★★★ 核心修正：防閃爍與即時更新 ★★★
   function dashboardAction(rowIndex, actionType) {
+      // 1. 暫停自動更新，防止舊資料覆蓋
+      if(timer) clearInterval(timer);
+
       var target = localData.find(d => d.rowIndex == rowIndex);
       if (!target) return;
 
-      // 1. 本地資料即時更新 (Optimistic UI)
+      // 2. 本地預判更新 (Optimistic UI)
       if (actionType === 'CHECKIN') {
           target.status = "待介紹";
           var now = new Date(); 
@@ -347,24 +347,34 @@
       } else if (actionType === 'DONE') {
           target.status = "已介紹";
           target.priority = 0;
-      } else if (actionType === 'UNDO_DONE') {
-          target.status = "待介紹";
       }
 
-      // 2. 重新渲染 (會看到卡片瞬間飛到對應區域)
+      // 3. 立即重繪畫面
       renderDashboard();
 
-      // 3. 發送後端請求
-      if (actionType === 'CHECKIN') {
-          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: "CHECKIN" }) });
-      } else if (actionType === 'DONE') {
-          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
-      } else if (actionType === 'UNDO_DONE') {
-          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
-      }
+      // 4. 發送請求 -> 成功後 -> 延遲 1 秒再重啟 Timer
+      var postAction = (actionType === 'CHECKIN') ? 'receptionAction' : 'updateStatus';
+      var postType = (actionType === 'CHECKIN') ? 'CHECKIN' : 'DONE';
+
+      fetch(API_URL, { 
+          method: "POST", 
+          body: JSON.stringify({ action: postAction, rowIndex: rowIndex, type: postType }) 
+      })
+      .then(() => {
+          // 等待 Google Sheet 寫入完成
+          setTimeout(() => {
+             fetchData(); // 拉取最新真實資料
+             startTimer(); // 重啟自動更新
+          }, 1500); 
+      })
+      .catch(err => {
+          console.error("Action failed", err);
+          alert("連線異常，請手動更新");
+          startTimer();
+      });
   }
 
-  // 主畫面使用的函式 (針對 GUEST)
+  // 主畫面功能
   function markDone(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex); 
     if(target) { target.status = "已介紹"; target.priority = 0; }
