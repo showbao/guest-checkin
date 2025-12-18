@@ -171,7 +171,14 @@
              document.getElementById('school-header-main').innerText = json.settings.schoolName;
           }
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
-          if(json.settings.levelNames) levelNames = json.settings.levelNames;
+          
+          // 修正：確保正確讀取 levelNames
+          if(json.settings.levelNames) {
+              levelNames = json.settings.levelNames;
+          } else {
+              // 兼容舊版回傳結構
+              levelNames = json.settings;
+          }
       }
 
       localData = json.data; 
@@ -185,12 +192,15 @@
   function manualUpdate() { fetchData(); startTimer(); }
   
   function fetchData() {
-    // 🔒 如果正在處理按鈕動作，暫停自動讀取，避免舊資料覆蓋
+    // 🔒 1. 如果正在處理按鈕動作，暫停自動讀取，避免舊資料覆蓋
     if(isProcessing) return;
 
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
+      // 🔒 2. 請求回來後再次檢查鎖定 (防止請求飛行中按下按鈕)
+      if(isProcessing) return;
+
       if(json.status === "error") { return; } 
       localData = json.data; renderSmart(); 
       if(document.getElementById('dashModal').classList.contains('show')) {
@@ -271,7 +281,7 @@
           [3, 2, 1, 0].forEach(lvl => {
               var items = activeData.filter(d => (d.originLevel || 0) === lvl);
               if (items.length > 0) {
-                  // 🔥 修正：使用正確的等級名稱 (若無則顯示貴賓)
+                  // 修正：正確顯示身份名稱 (若無則顯示貴賓)
                   var groupName = (levelNames && levelNames[lvl]) ? levelNames[lvl] : "貴賓";
                   html += `<div class="col-12"><div class="dash-group-title">${groupName}</div></div>`;
                   items.forEach(item => html += createDashCard(item, "INTRO"));
@@ -280,10 +290,10 @@
           html += `</div>`;
       }
 
-      // --- 2. 完整名冊 (待報到 + 已介紹) ---
-      html += `<div class="section-header">📋 完整名冊 (待報到 / 已完成)</div>`;
+      // --- 2. 完整名冊 (未報到 + 已介紹) ---
+      html += `<div class="section-header">📋 完整名冊 (未報到 / 已完成)</div>`;
       
-      // 排序: 等級 > 狀態 (待報到排上面 > 已介紹排下面) > Sheet順序
+      // 排序: 等級 > 狀態 (未報到 > 已介紹) > Sheet順序
       rosterData.sort((a, b) => {
           // 1. 先比等級
           var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
@@ -317,8 +327,8 @@
       
       if (item.status === "未報到") {
           dotClass = "dot-red";
-          // 修正按鈕名稱：待報到
-          btnHtml = `<button class="dash-btn btn-dash-checkin" onclick="dashboardAction(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
+          // 修正按鈕文字為「未報到」
+          btnHtml = `<button class="dash-btn btn-dash-checkin" onclick="dashboardAction(${item.rowIndex}, 'CHECKIN')">未報到</button>`;
       } else if (item.status === "待介紹") {
           dotClass = "dot-green";
           btnHtml = `<button class="dash-btn btn-dash-intro" onclick="dashboardAction(${item.rowIndex}, 'DONE')">介紹</button>`;
@@ -364,7 +374,7 @@
       // 3. 立即重繪畫面
       renderDashboard();
 
-      // 4. 發送請求 -> 成功後 -> 延遲 1.5 秒再重啟 Timer
+      // 4. 發送請求 -> 成功後 -> 延遲 2.5 秒再重啟 Timer
       var postAction = (actionType === 'CHECKIN') ? 'receptionAction' : 'updateStatus';
       var postType = (actionType === 'CHECKIN') ? 'CHECKIN' : 'DONE';
 
@@ -373,12 +383,12 @@
           body: JSON.stringify({ action: postAction, rowIndex: rowIndex, type: postType }) 
       })
       .then(() => {
-          // 關鍵延遲：等待 Google Sheet 真正寫入完成
+          // 關鍵延遲：等待 Google Sheet 真正寫入完成 (加大到 2500ms 確保萬無一失)
           setTimeout(() => {
              isProcessing = false; // 解除鎖定
              fetchData(); // 再次拉取最新真實資料，確認無誤
              startTimer(); // 重啟自動更新
-          }, 1500); 
+          }, 2500); 
       })
       .catch(err => {
           console.error("Action failed", err);
@@ -388,7 +398,7 @@
       });
   }
 
-  // 主畫面功能
+  // 主畫面功能 (GUEST)
   function markDone(rowIndex) {
     var target = localData.find(d => d.rowIndex == rowIndex); 
     if(target) { target.status = "已介紹"; target.priority = 0; }
