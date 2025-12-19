@@ -10,18 +10,15 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
 
-    /* 登入卡片 */
     #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 50px auto; text-align: center; }
     .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
 
-    /* 主畫面 */
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* 工具區 */
     .tools-container { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
     .search-box { border-radius: 12px; padding: 12px; border: 2px solid #eee; font-size: 1.1rem; flex: 1; }
@@ -31,7 +28,6 @@
     .add-area { border-top: 1px dashed #ddd; padding-top: 15px; }
     .add-label { font-weight: bold; color: #666; margin-bottom: 8px; display: block; font-size: 0.9rem; }
 
-    /* 分區標題 (可收合) */
     .section-header { 
         padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
@@ -39,28 +35,28 @@
         cursor: pointer; transition: background 0.2s;
     }
     .section-header:hover { background: #dee2e6; }
-    .section-header.pending-zone { border-left-color: #dc3545; color: #dc3545; background: #fff5f5; } /* 待報到區特別色 */
+    .section-header.pending-zone { border-left-color: #dc3545; color: #dc3545; background: #fff5f5; }
     
     .collapse-icon { transition: transform 0.3s; }
     .collapsed .collapse-icon { transform: rotate(-90deg); }
 
     .dash-group-title { font-size: 1rem; color: #333; margin: 10px 5px 5px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
 
-    /* 卡片樣式 */
     .row-card { 
         border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
         background: white; min-height: 80px; transition: all 0.3s ease; 
     }
-    
-    .row-card.arrived { background: #f8f9fa; opacity: 0.6; box-shadow: none; } /* 變淡 */
+    .row-card.arrived { background: #f8f9fa; opacity: 0.6; box-shadow: none; }
     .row-card.arrived .name { text-decoration: line-through; color: #999; }
 
     .info { flex: 1; padding-right: 15px; }
     .job { font-size: 14px; color: #666; display: block; }
     .name { font-size: 20px; font-weight: 800; color: #000; }
 
-    .btn-checkin { background: #dc3545; color: white; border: none; padding: 10px 25px; border-radius: 50px; font-weight: bold; min-width: 80px; }
+    .btn-checkin { background: #dc3545; color: white; border: none; padding: 10px 25px; border-radius: 50px; font-weight: bold; min-width: 80px; transition: background 0.2s; }
+    .btn-checkin:disabled { background: #999; cursor: not-allowed; }
+    
     .btn-add { background: #212529; color: white; font-weight: bold; border-radius: 8px; }
 
     @media (max-width: 576px) {
@@ -90,7 +86,6 @@
         <input type="text" id="search" class="form-control search-box" placeholder="🔍 搜尋姓名或職稱..." onkeyup="filterList()">
         <button onclick="manualUpdate()" class="btn-refresh">🔄 立即更新</button>
     </div>
-    
     <div class="add-area">
       <span class="add-label">➕ 現場補登 (名單外貴賓)</span>
       <div class="row g-2">
@@ -106,31 +101,44 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var allGuests = []; var levelNames = {};
   var timer = null; 
-  var isProcessing = false; // 🔥 寫入鎖定：防閃爍關鍵
-  
-  // 狀態記憶：待報到預設開(true)，其他預設關(false)
+  var isProcessing = false; // 🔥 寫入鎖定
   var sectionStates = { pending: true, active: false, done: false };
 
+  // 自動登入檢查
   window.onload = function() {
     var storedPwd = sessionStorage.getItem('reception_password');
-    if (storedPwd) { document.getElementById('pwd').value = storedPwd; setTimeout(manualLogin, 100); }
+    if (storedPwd) { 
+        document.getElementById('pwd').value = storedPwd; 
+        // 隱藏登入框，直接顯示主畫面(但還是空的)，等待資料
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        manualLogin(); 
+    }
   };
 
   function manualLogin() {
     PASSWORD = document.getElementById('pwd').value;
-    var btn = document.querySelector('.btn-login'); if(btn) { btn.innerText = "驗證中..."; btn.disabled = true; }
+    var btn = document.querySelector('.btn-login'); 
+    if(btn && document.getElementById('login-section').style.display !== 'none') {
+        btn.innerText = "驗證中..."; btn.disabled = true;
+    }
 
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
       if(btn) { btn.innerText = "進入系統"; btn.disabled = false; }
 
       if(json.status === "error") { 
-        alert("登入失敗：" + json.message); sessionStorage.removeItem('reception_password'); return; 
+        // 登入失敗才顯示登入框
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('main-app').style.display = 'none';
+        alert("登入失敗：" + json.message); 
+        sessionStorage.removeItem('reception_password'); 
+        return; 
       }
       
       document.getElementById('login-section').style.display = 'none';
@@ -138,7 +146,6 @@
       
       if(json.settings) {
           if(json.settings.schoolName) {
-             document.querySelector('#login-box .school-header').innerText = json.settings.schoolName;
              document.getElementById('school-header-main').innerText = json.settings.schoolName;
           }
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
@@ -147,20 +154,16 @@
       
       allGuests = json.data; 
       renderLists();
-      startTimer(); // 啟動自動更新
+      startTimer(); 
     })
-    .catch(err => { console.error(err); alert("連線錯誤"); });
+    .catch(err => { console.error(err); alert("連線錯誤，請重新整理"); });
   }
 
-  // 自動更新機制
   function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 5000); }
   function manualUpdate() { fetchData(); startTimer(); }
 
   function fetchData() {
-      // 🔒 如果正在處理按鈕動作，暫停自動讀取，避免舊資料覆蓋
-      if(isProcessing) return;
-
-      // 紀錄收合狀態
+      if(isProcessing) return; // 鎖定中不更新
       saveCollapseState();
       
       var btn = document.querySelector('.btn-refresh');
@@ -169,9 +172,7 @@
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
       .then(res => res.json()).then(json => {
           if(btn) { btn.innerText = "🔄 立即更新"; btn.disabled = false; }
-          
-          // 🔒 二次檢查鎖定
-          if(isProcessing) return;
+          if(isProcessing) return; // 二次檢查
 
           if(json.status === "success") {
               allGuests = json.data;
@@ -184,7 +185,6 @@
       var elPending = document.getElementById('collapse-pending');
       var elActive = document.getElementById('collapse-active');
       var elDone = document.getElementById('collapse-done');
-      
       if(elPending) sectionStates.pending = elPending.classList.contains('show');
       if(elActive) sectionStates.active = elActive.classList.contains('show');
       if(elDone) sectionStates.done = elDone.classList.contains('show');
@@ -193,8 +193,6 @@
   function renderLists() {
     var list = document.getElementById('guest-list'); 
     var keyword = document.getElementById('search').value.toLowerCase().trim();
-    
-    // 過濾掉 Source=GUEST (自助簽到不顯示在接待端)
     var receptionData = allGuests.filter(d => d.source !== "GUEST");
 
     if(keyword) {
@@ -206,19 +204,16 @@
     var doneList = receptionData.filter(d => d.status === "已介紹");
 
     var html = "";
-    
     var showPending = sectionStates.pending ? "show" : "";
     var showActive = sectionStates.active ? "show" : "";
     var showDone = sectionStates.done ? "show" : "";
 
-    // 1. 待報到 (Pending) - 預設展開，紅色 Header
+    // 1. 待報到區 (最上)
     html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingList, showPending, "pending-zone");
-
-    // 2. 已到現場 (Active) - 預設收合
+    // 2. 待介紹區 (中間)
     html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeList, showActive, "");
-
-    // 3. 已介紹 (Done) - 預設收合
-    html += createSectionHtml("done", "⚫ 已完成 (已介紹)", doneList, showDone, "");
+    // 3. 已完成區 (最下)
+    html += createSectionHtml("done", "⚫ 已完成", doneList, showDone, "");
 
     list.innerHTML = html;
   }
@@ -238,7 +233,7 @@
       if(data.length === 0) {
           html += `<div class="text-center p-3 text-muted">無資料</div>`;
       } else {
-          // 排序：等級高->低，若是未報到則依 Sheet 順序
+          // 排序
           data.sort((a, b) => {
               var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
               if (lvlA !== lvlB) return lvlB - lvlA;
@@ -247,7 +242,6 @@
               if (tA < tB) return -1; if (tA > tB) return 1; return 0;
           });
 
-          // 分組渲染
           [3, 2, 1, 0].forEach(lvl => {
               var items = data.filter(d => (d.originLevel || 0) === lvl);
               if (items.length > 0) {
@@ -258,13 +252,13 @@
                       var rowClass = "row-card";
                       
                       if(type === "pending") {
-                          // 按鈕修正為「待報到」
-                          btnHtml = `<button class="btn-checkin" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
+                          // 按鈕：待報到
+                          btnHtml = `<button class="btn-checkin" id="btn-${item.rowIndex}" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
                       } else if(type === "active") {
-                          // 狀態文字修正為「待介紹」，無按鈕
+                          // 狀態：待介紹 (無按鈕)
                           btnHtml = `<span class="text-success fw-bold">待介紹</span>`;
                       } else {
-                          // 已完成
+                          // 狀態：已完成
                           rowClass += " arrived";
                           btnHtml = `<span class="text-muted">已完成</span>`;
                       }
@@ -281,19 +275,20 @@
       return html;
   }
 
-  function filterList() {
-    renderLists();
-  }
+  function filterList() { renderLists(); }
 
-  // ★★★ 核心修正：防閃爍與即時更新 ★★★
+  // 🔥 防閃爍核心
   function toggleStatus(rowIndex, type) {
-    if(isProcessing) return; // 鎖定
+    if(isProcessing) return; // 鎖定中
     
     // 1. 鎖定自動更新
     if(timer) clearInterval(timer);
     isProcessing = true;
 
-    // 2. 本地預判更新 (Optimistic UI)
+    // 2. 立即視覺回饋 (Local Update)
+    var btn = document.getElementById('btn-' + rowIndex);
+    if(btn) { btn.innerText = "..."; btn.disabled = true; } // 讓按鈕變灰，顯示處理中
+
     var target = allGuests.find(g => g.rowIndex == rowIndex);
     if (target) {
         if (type === "CHECKIN") { 
@@ -302,17 +297,17 @@
         } 
     }
     
-    // 3. 立即重繪
+    // 3. 立即重繪 (Optimistic UI)
     saveCollapseState();
     renderLists();
 
-    // 4. 發送請求 -> 成功後 -> 延遲 2.5 秒再解鎖
+    // 4. 發送 API 並延遲解鎖
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) })
     .then(() => {
-        // 關鍵延遲：等待 Google Sheet 寫入完成
+        // 等待 2.5 秒讓 Google Sheet 存檔
         setTimeout(() => {
             isProcessing = false; // 解鎖
-            fetchData(); // 重新拉取確認
+            fetchData(); // 重新拉取
             startTimer(); // 重啟 Timer
         }, 2500);
     })
@@ -329,12 +324,11 @@
     
     if(confirm(`確認新增並報到：\n${title} ${name} ？`)) {
         var btn = document.querySelector('.btn-add'); var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
-        // 補登預設 Level 0 (一般)
         fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name, level: 0, isReception: true }) })
         .then(() => {
             alert("新增成功！");
             document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; 
-            fetchData(); // 這裡不需要防閃爍，因為是新增
+            fetchData(); 
             btn.innerText = orgText; btn.disabled = false;
         });
     }
