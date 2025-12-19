@@ -3,322 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>接待處報到</title>
+  <title>活動入口首頁</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; } 
-    body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-    .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-
-    #login-box { display: none; } /* 預設隱藏，由程式控制 */
-    
-    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .event-main-title { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .tools-container { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
-    .search-box { border-radius: 12px; padding: 12px; border: 2px solid #eee; font-size: 1.1rem; flex: 1; }
-    .btn-refresh { padding: 0 20px; border-radius: 12px; background: #212529; color: white; border: none; font-weight: bold; white-space: nowrap;}
-    
-    .add-area { border-top: 1px dashed #ddd; padding-top: 15px; }
-    .add-label { font-weight: bold; color: #666; margin-bottom: 8px; display: block; font-size: 0.9rem; }
-    .form-select { border-radius: 12px; padding: 10px; border: 2px solid #eee; }
-
-    .section-header { 
-        padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
-        display: flex; justify-content: space-between; align-items: center;
-        border-left: 5px solid #666; margin-top: 20px; margin-bottom: 10px; border-radius: 0 8px 8px 0;
-        cursor: pointer; transition: background 0.2s;
-    }
-    .section-header:hover { background: #dee2e6; }
-    .section-header.pending-zone { border-left-color: #dc3545; color: #dc3545; background: #fff5f5; }
-    
-    .collapse-icon { transition: transform 0.3s; }
-    .collapsed .collapse-icon { transform: rotate(-90deg); }
-
-    .dash-group-title { font-size: 1rem; color: #333; margin: 10px 5px 5px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
-
-    .row-card { 
-        border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
-        border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
-        background: white; min-height: 80px; transition: all 0.3s ease; 
-    }
-    .row-card.arrived { background: #f8f9fa; opacity: 0.6; box-shadow: none; }
-    .row-card.arrived .name { text-decoration: line-through; color: #999; }
-
-    .info { flex: 1; padding-right: 15px; }
-    .job { font-size: 14px; color: #666; display: block; }
-    .name { font-size: 20px; font-weight: 800; color: #000; }
-
-    .btn-checkin { background: #dc3545; color: white; border: none; padding: 10px 25px; border-radius: 50px; font-weight: bold; min-width: 80px; transition: background 0.2s; }
-    .btn-checkin:disabled { background: #999; cursor: not-allowed; }
-    .btn-add { background: #212529; color: white; font-weight: bold; border-radius: 8px; }
-
-    @media (max-width: 576px) {
-        .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
-        .row-card { padding: 15px; min-height: 90px; }
-        .name { font-size: 20px; }
-    }
+    body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .portal-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 600px; width: 100%; text-align: center; }
+    .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; letter-spacing: 1px; font-size: clamp(1rem, 4vw, 1.5rem); }
+    .main-title { font-weight: 800; color: #333; margin-bottom: 40px; font-size: clamp(1.5rem, 6vw, 3rem); line-height: 1.2; }
+    .btn-portal { display: block; width: 100%; padding: 20px; margin-bottom: 20px; border-radius: 16px; border: none; font-size: 1.3rem; font-weight: bold; transition: transform 0.1s; text-decoration: none; color: white; cursor: pointer; }
+    .btn-portal:active { transform: scale(0.98); }
+    .btn-guest { background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .btn-host { background: white; color: #333; border: 2px solid #333; }
+    .modal-content { border-radius: 20px; }
+    .modal-header { border-bottom: none; }
+    .modal-footer { border-top: none; }
   </style>
 </head>
 <body>
 
-<div class="container" id="main-app">
-  <div class="school-header" id="school-header-main" style="text-align: center; margin-top:20px;"></div>
-  <h1 id="event-header" class="event-main-title">載入中...</h1>
+  <div class="portal-card">
+    <div class="school-header" id="school-name">載入中...</div>
+    <h1 class="main-title" id="site-title">活動載入中...</h1>
 
-  <div class="tools-container">
-    <div class="search-row">
-        <input type="text" id="search" class="form-control search-box" placeholder="🔍 搜尋姓名或職稱..." onkeyup="filterList()">
-        <button onclick="manualUpdate()" class="btn-refresh">🔄 立即更新</button>
-    </div>
-    
-    <div class="add-area">
-      <span class="add-label">➕ 現場補登 (名單外貴賓)</span>
-      <div class="row g-2">
-        <div class="col-3">
-            <select id="new-level" class="form-select">
-                <option value="0">來賓</option> </select>
+    <a href="guest.html" class="btn-portal btn-guest">👋 來賓自助簽到</a>
+    <button onclick="openLogin()" class="btn-portal btn-host">🔐 工作人員登入</button>
+  </div>
+
+  <div class="modal fade" id="pwdModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header justify-content-center"><h5 class="modal-title fw-bold">系統登入</h5></div>
+        <div class="modal-body">
+            <input type="password" id="modalPwd" class="form-control form-control-lg text-center" placeholder="請輸入通行碼">
+            <div id="login-msg" class="text-center mt-2 text-danger" style="display:none;"></div>
         </div>
-        <div class="col-3"><input type="text" id="new-job" class="form-control" placeholder="職稱"></div>
-        <div class="col-4"><input type="text" id="new-name" class="form-control" placeholder="姓名"></div>
-        <div class="col-2"><button onclick="addNew()" class="btn btn-add w-100">新增</button></div>
+        <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-dark w-100 py-2 fs-5" onclick="submitPassword()">登入</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="guest-list"></div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
+    const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
-  const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
-  
-  var PASSWORD = ""; var allGuests = []; var levelNames = {};
-  var timer = null; 
-  var isProcessing = false; 
-  var sectionStates = { pending: true, active: false, done: false };
+    var modal = new bootstrap.Modal(document.getElementById('pwdModal'));
+    var authData = null; 
 
-  // 自動登入
-  window.onload = function() {
-    var storedPwd = sessionStorage.getItem('reception_password');
-    if (storedPwd) { 
-        PASSWORD = storedPwd;
-        manualLogin(); 
-    } else {
-        alert("請先從首頁登入");
-        window.location.href = "index.html";
+    // 🔥 優先從快取讀取標題
+    document.addEventListener("DOMContentLoaded", function() { 
+        var cached = localStorage.getItem('siteSettings');
+        if(cached) {
+            var data = JSON.parse(cached);
+            if(data.schoolName) document.getElementById('school-name').innerText = data.schoolName;
+            if(data.eventName) document.getElementById('site-title').innerText = data.eventName;
+        }
+        fetchSettings(); 
+    });
+
+    function fetchSettings() {
+        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getSettings" }) })
+        .then(res => res.json()).then(json => {
+            if(json.schoolName) document.getElementById('school-name').innerText = json.schoolName;
+            if(json.eventName) document.getElementById('site-title').innerText = json.eventName;
+            if(json.authData) authData = json.authData;
+            
+            // 更新快取
+            localStorage.setItem('siteSettings', JSON.stringify({
+                schoolName: json.schoolName,
+                eventName: json.eventName
+            }));
+        })
+        .catch(err => console.error("Error:", err));
     }
-  };
 
-  function manualLogin() {
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
-    .then(res => res.json()).then(json => {
-      if(json.status === "error") { 
-        alert("登入失敗：" + json.message); 
-        window.location.href = "index.html";
-        return; 
-      }
+    function openLogin() {
+      document.getElementById('modalPwd').value = "";
+      document.getElementById('login-msg').style.display = 'none';
+      modal.show();
+      setTimeout(() => document.getElementById('modalPwd').focus(), 500);
+    }
+
+    function submitPassword() {
+      var pwd = document.getElementById('modalPwd').value;
+      if(!pwd) { alert("請輸入密碼"); return; }
       
-      if(json.settings) {
-          if(json.settings.schoolName) document.getElementById('school-header-main').innerText = json.settings.schoolName;
-          if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
-          
-          // 更新下拉選單
-          if(json.settings.levelNames) {
-              levelNames = json.settings.levelNames;
-              var select = document.getElementById('new-level');
-              select.innerHTML = "";
-              // 依序加入選項 3, 2, 1, 0 (對應 立委, 校長, 家委, 貴賓)
-              [3, 2, 1, 0].forEach(l => {
-                  var name = levelNames[l] || "等級"+l;
-                  var opt = document.createElement('option');
-                  opt.value = l;
-                  opt.innerText = name;
-                  select.appendChild(opt);
-              });
-              select.value = 0; // 預設來賓
+      try {
+          var inputHash = btoa(pwd);
+          if (authData && inputHash === authData.admin) {
+              sessionStorage.setItem('host_password', pwd);
+              window.location.href = 'admin.html';
+              return;
+          } else if (authData && inputHash === authData.reception) {
+              sessionStorage.setItem('reception_password', pwd);
+              window.location.href = 'reception.html';
+              return;
           }
-      }
-      
-      allGuests = json.data; 
-      renderLists();
-      startTimer(); 
-    })
-    .catch(err => { console.error(err); alert("連線錯誤，請重新整理"); });
-  }
+      } catch(e) {}
 
-  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 5000); }
-  function manualUpdate() { fetchData(); startTimer(); }
-
-  function fetchData() {
-      if(isProcessing) return; 
-      saveCollapseState();
-      
-      var btn = document.querySelector('.btn-refresh');
-      if(btn) { var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true; }
-      
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
-      .then(res => res.json()).then(json => {
-          if(btn) { btn.innerText = "🔄 立即更新"; btn.disabled = false; }
-          if(isProcessing) return;
-
-          if(json.status === "success") {
-              allGuests = json.data;
-              renderLists();
-          }
-      });
-  }
-
-  function saveCollapseState() {
-      var elPending = document.getElementById('collapse-pending');
-      var elActive = document.getElementById('collapse-active');
-      var elDone = document.getElementById('collapse-done');
-      if(elPending) sectionStates.pending = elPending.classList.contains('show');
-      if(elActive) sectionStates.active = elActive.classList.contains('show');
-      if(elDone) sectionStates.done = elDone.classList.contains('show');
-  }
-
-  function renderLists() {
-    var list = document.getElementById('guest-list'); 
-    var keyword = document.getElementById('search').value.toLowerCase().trim();
-    var receptionData = allGuests.filter(d => d.source !== "GUEST");
-
-    if(keyword) {
-        receptionData = receptionData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
-    }
-
-    var pendingList = receptionData.filter(d => d.status === "未報到");
-    var activeList = receptionData.filter(d => d.status === "待介紹");
-    var doneList = receptionData.filter(d => d.status === "已介紹");
-
-    var html = "";
-    var showPending = sectionStates.pending ? "show" : "";
-    var showActive = sectionStates.active ? "show" : "";
-    var showDone = sectionStates.done ? "show" : "";
-
-    html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingList, showPending, "pending-zone");
-    html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeList, showActive, "");
-    html += createSectionHtml("done", "⚫ 已完成 (已介紹)", doneList, showDone, "");
-
-    // 🔥 Smart Diffing 邏輯：如果容器不存在，直接寫入；如果存在，則盡量不破壞 DOM
-    // 為了簡單起見，這裡還是使用 innerHTML，但因為我們已經有「按鈕點擊後立即鎖定」的邏輯，所以可以解決按不到的問題。
-    // 進階做法是比較 HTML 字串，這裡先維持簡單。
-    list.innerHTML = html;
-  }
-
-  function createSectionHtml(type, title, data, showClass, headerClass) {
-      var collapsedState = showClass ? "" : "collapsed";
-      var count = data.length;
-      
-      var html = `
-        <div class="section-header ${headerClass} ${collapsedState}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}" onclick="saveCollapseState()">
-            <span>${title} <span class="badge bg-secondary ms-2">${count}</span></span>
-            <span class="collapse-icon">▼</span>
-        </div>
-        <div id="collapse-${type}" class="collapse ${showClass}">
-      `;
-
-      if(data.length === 0) {
-          html += `<div class="text-center p-3 text-muted">無資料</div>`;
-      } else {
-          data.sort((a, b) => {
-              var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
-              if (lvlA !== lvlB) return lvlB - lvlA;
-              if(type === 'pending') return a.rowIndex - b.rowIndex; 
-              var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-              if (tA < tB) return -1; if (tA > tB) return 1; return 0;
-          });
-
-          [3, 2, 1, 0].forEach(lvl => {
-              var items = data.filter(d => (d.originLevel || 0) === lvl);
-              if (items.length > 0) {
-                  var groupName = (levelNames && levelNames[lvl]) ? levelNames[lvl] : "貴賓";
-                  html += `<div class="dash-group-title">${groupName}</div>`;
-                  items.forEach(item => {
-                      var btnHtml = "";
-                      var rowClass = "row-card";
-                      
-                      if(type === "pending") {
-                          // 按鈕：待報到
-                          btnHtml = `<button class="btn-checkin" id="btn-${item.rowIndex}" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
-                      } else if(type === "active") {
-                          btnHtml = `<span class="text-success fw-bold">待介紹</span>`;
-                      } else {
-                          rowClass += " arrived";
-                          btnHtml = `<span class="text-muted">已完成</span>`;
-                      }
-
-                      html += `<div class="${rowClass}" id="card-${item.rowIndex}">
-                          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-                          <div>${btnHtml}</div>
-                        </div>`;
-                  });
-              }
-          });
-      }
-      html += `</div>`;
-      return html;
-  }
-
-  function filterList() { renderLists(); }
-
-  // 🔥 防閃爍核心 + 按鈕立即反應
-  function toggleStatus(rowIndex, type) {
-    if(isProcessing) return;
-    
-    // 1. 立即鎖定
-    if(timer) clearInterval(timer);
-    isProcessing = true;
-
-    // 2. 讓按鈕變灰，顯示 "..." (使用者回饋)
-    var btn = document.getElementById('btn-' + rowIndex);
-    if(btn) { btn.innerText = "..."; btn.disabled = true; }
-
-    // 3. 本地預判更新
-    var target = allGuests.find(g => g.rowIndex == rowIndex);
-    if (target) {
-        if (type === "CHECKIN") { 
-            target.status = "待介紹"; 
-            var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0]; 
-        } 
+      var msg = document.getElementById('login-msg');
+      msg.innerText = "密碼錯誤，請重試";
+      msg.style.display = 'block';
     }
     
-    // 4. 重繪 (這時候卡片會飛到下一區，因為數據已經變了)
-    saveCollapseState();
-    renderLists();
-
-    // 5. 發送請求 -> 延遲解鎖
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) })
-    .then(() => {
-        setTimeout(() => {
-            isProcessing = false;
-            fetchData(); 
-            startTimer(); 
-        }, 2500);
-    })
-    .catch(() => { isProcessing = false; startTimer(); });
-  }
-
-  function addNew() {
-    var title = document.getElementById('new-job').value;
-    var name = document.getElementById('new-name').value;
-    var level = document.getElementById('new-level').value; // 取得選擇的等級
-    if(!name) { alert("請輸入姓名"); return; }
-    
-    if(confirm(`確認新增並報到：\n${title} ${name} ？`)) {
-        var btn = document.querySelector('.btn-add'); var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
-        
-        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name, level: level, isReception: true }) })
-        .then(() => {
-            alert("新增成功！");
-            document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; 
-            fetchData(); 
-            btn.innerText = orgText; btn.disabled = false;
-        });
-    }
-  }
-</script>
+    document.getElementById('modalPwd').addEventListener("keypress", function(e) { if (e.key === "Enter") submitPassword(); });
+  </script>
 </body>
 </html>
