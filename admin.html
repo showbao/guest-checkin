@@ -313,4 +313,147 @@
       
       if (item.status === "未報到") {
           dotClass = "dot-red";
-          btnHtml = `<button class="vip-
+          btnHtml = `<button class="vip-btn btn-vip-checkin" onclick="vipAction(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
+      } else if (item.status === "待介紹") {
+          dotClass = "dot-green";
+          btnHtml = `<button class="vip-btn btn-vip-intro" onclick="vipAction(${item.rowIndex}, 'DONE')">待介紹</button>`;
+      } else { // 已介紹
+          dotClass = "dot-gray";
+          cardClass += " is-done";
+          btnHtml = `<small class="text-muted fw-bold">已完成</small>`;
+      }
+
+      return `<div class="col-12 col-md-6">
+          <div class="${cardClass}">
+            <div class="d-flex align-items-center">
+                <div class="vip-dot ${dotClass}"></div>
+                <div class="vip-info">
+                    <span class="vip-job">${item.title}</span>
+                    <span class="vip-name">${item.name}</span>
+                </div>
+            </div>
+            <div>${btnHtml}</div>
+          </div>
+      </div>`;
+  }
+
+  // ★★★ VIP 動作處理 (含防閃爍) ★★★
+  function vipAction(rowIndex, actionType) {
+      if(timer) clearInterval(timer);
+      isProcessing = true; // 鎖定
+
+      var target = localData.find(d => d.rowIndex == rowIndex);
+      if (!target) return;
+
+      if (actionType === 'CHECKIN') {
+          target.status = "待介紹";
+          var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0];
+      } else if (actionType === 'DONE') {
+          target.status = "已介紹";
+      }
+
+      // 更新前先存狀態
+      saveCollapseState();
+      renderMainVIPs();
+
+      var postAction = (actionType === 'CHECKIN') ? 'receptionAction' : 'updateStatus';
+      var postType = (actionType === 'CHECKIN') ? 'CHECKIN' : 'DONE';
+
+      fetch(API_URL, { 
+          method: "POST", 
+          body: JSON.stringify({ action: postAction, rowIndex: rowIndex, type: postType }) 
+      })
+      .then(() => {
+          setTimeout(() => {
+             isProcessing = false; // 解鎖
+             fetchData(); 
+             startTimer(); 
+          }, 1500); 
+      })
+      .catch(err => {
+          console.error(err); alert("連線異常"); isProcessing = false; startTimer();
+      });
+  }
+
+  // ==========================================
+  // 2. 彈窗渲染：現場報到 (Guest Modal)
+  // ==========================================
+  function openGuestModal() {
+      renderGuestModal();
+      guestModal.show();
+  }
+
+  function renderGuestModal() {
+      var list = document.getElementById('guest-list-body');
+      var keyword = document.getElementById('guest-search').value.toLowerCase().trim();
+      var guestData = localData.filter(d => d.source === 'GUEST');
+
+      if (keyword) {
+          guestData = guestData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
+      }
+
+      guestData.sort((a, b) => {
+        if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
+        var pA = a.priority || 0; var pB = b.priority || 0;
+        if (pA !== pB) return pB - pA;
+        var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
+        if (tA < tB) return -1; if (tA > tB) return 1; return 0; 
+      });
+
+      var html = "";
+      if(guestData.length === 0) {
+          html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
+      } else {
+          // 加入 row 容器
+          html += `<div class="row g-2">`;
+          guestData.forEach(item => {
+            var isDone = item.status === "已介紹";
+            var pLevel = item.priority || 0;
+            var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : "";
+            var btnHtml = !isDone 
+                ? `<div class="btn-pin s-level-${pLevel}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
+                : `<button class="btn-undo" onclick="undoGuest(${item.rowIndex})">↩️ 回復</button>`;
+            
+            // 加入 col-md-6 容器，實現電腦版並排
+            html += `
+            <div class="col-12 col-md-6">
+                <div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}">
+                  <div class="time">${timeDisplay}</div>
+                  <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
+                  <div class="d-flex align-items-center">${btnHtml}</div>
+                </div>
+            </div>`;
+          });
+          html += `</div>`; // End row
+      }
+      list.innerHTML = html;
+  }
+
+  function cycleGuestPriority(rowIndex) {
+      var target = localData.find(d => d.rowIndex == rowIndex);
+      if(target) {
+          var newP = ((target.priority || 0) + 1) % 4;
+          target.priority = newP;
+          renderGuestModal(); 
+          if(timer) clearInterval(timer); 
+          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
+          setTimeout(startTimer, 3000); 
+      }
+  }
+
+  function markGuestDone(rowIndex) {
+      var target = localData.find(d => d.rowIndex == rowIndex);
+      if(target) { target.status = "已介紹"; target.priority = 0; }
+      renderGuestModal();
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
+  }
+
+  function undoGuest(rowIndex) {
+      var target = localData.find(d => d.rowIndex == rowIndex);
+      if(target) { target.status = "待介紹"; }
+      renderGuestModal();
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
+  }
+</script>
+</body>
+</html>
