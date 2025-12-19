@@ -10,8 +10,7 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    #login-box { display: none; }
-    
+    #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
     .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1rem, 4vw, 1.2rem); text-align: center; }
     .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -28,6 +27,7 @@
     .search-box:focus { border-color: #333; outline: none; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
 
+    /* VIP 卡片 */
     .vip-card {
         background: white; border-radius: 12px; padding: 15px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;
@@ -52,6 +52,7 @@
     .dot-green { background: #198754; box-shadow: 0 0 5px #198754; }
     .dot-gray { background: #ccc; }
 
+    /* 分區標題 */
     .section-header { 
         padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
@@ -67,6 +68,7 @@
 
     .dash-group-title { font-size: 1rem; color: #333; margin: 15px 5px 10px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
 
+    /* 現場報到卡片 */
     .guest-card { 
         border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
@@ -257,201 +259,3 @@
       var keyword = document.getElementById('vip-search').value.toLowerCase().trim();
       var vipData = localData.filter(d => d.source !== 'GUEST');
       if (keyword) {
-          vipData = vipData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
-      }
-
-      var activeData = vipData.filter(d => d.status === "待介紹");
-      var pendingData = vipData.filter(d => d.status === "未報到");
-      var doneData = vipData.filter(d => d.status === "已介紹");
-
-      var html = "";
-      var showActive = sectionStates.active ? "show" : "";
-      var showPending = sectionStates.pending ? "show" : "";
-      var showDone = sectionStates.done ? "show" : "";
-      
-      html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeData, showActive, "active-zone");
-      html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingData, showPending, "");
-      html += createSectionHtml("done", "⚫ 已介紹", doneData, showDone, "");
-
-      list.innerHTML = html;
-  }
-
-  function createSectionHtml(type, title, data, showClass, headerClass) {
-      var collapsedState = showClass ? "" : "collapsed";
-      var count = data.length;
-      var html = `
-        <div class="section-header ${headerClass} ${collapsedState}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}" onclick="saveCollapseState()">
-            <span>${title} <span class="badge bg-secondary ms-2">${count}</span></span>
-            <span class="collapse-icon">▼</span>
-        </div>
-        <div id="collapse-${type}" class="collapse ${showClass}">
-      `;
-
-      if(data.length === 0) {
-          html += `<div class="text-center p-3 text-muted">無資料</div>`;
-      } else {
-          data.sort((a, b) => {
-              var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
-              if (lvlA !== lvlB) return lvlB - lvlA;
-              if (type === 'pending') return a.rowIndex - b.rowIndex; 
-              var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-              if (tA < tB) return -1; if (tA > tB) return 1; return 0;
-          });
-          
-          html += `<div class="row g-2">`;
-          [3, 2, 1, 0].forEach(lvl => {
-              var items = data.filter(d => (d.originLevel || 0) === lvl);
-              if (items.length > 0) {
-                  var groupName = (levelNames && levelNames[lvl]) ? levelNames[lvl] : "貴賓";
-                  html += `<div class="col-12"><div class="dash-group-title">${groupName}</div></div>`;
-                  items.forEach(item => html += createVipCard(item));
-              }
-          });
-          html += `</div>`;
-      }
-      html += `</div>`;
-      return html;
-  }
-
-  function createVipCard(item) {
-      var dotClass, btnHtml, cardClass = "vip-card";
-      
-      if (item.status === "未報到") {
-          dotClass = "dot-red";
-          btnHtml = `<button class="vip-btn btn-vip-checkin" onclick="vipAction(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
-      } else if (item.status === "待介紹") {
-          dotClass = "dot-green";
-          btnHtml = `<button class="vip-btn btn-vip-intro" onclick="vipAction(${item.rowIndex}, 'DONE')">待介紹</button>`;
-      } else { 
-          dotClass = "dot-gray";
-          cardClass += " is-done";
-          btnHtml = `<small class="text-muted fw-bold">已完成</small>`;
-      }
-
-      return `<div class="col-12 col-md-6">
-          <div class="${cardClass}">
-            <div class="d-flex align-items-center">
-                <div class="vip-dot ${dotClass}"></div>
-                <div class="vip-info">
-                    <span class="vip-job">${item.title}</span>
-                    <span class="vip-name">${item.name}</span>
-                </div>
-            </div>
-            <div>${btnHtml}</div>
-          </div>
-      </div>`;
-  }
-
-  function vipAction(rowIndex, actionType) {
-      if(timer) clearInterval(timer);
-      isProcessing = true; 
-
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if (!target) return;
-
-      if (actionType === 'CHECKIN') {
-          target.status = "待介紹";
-          var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0];
-      } else if (actionType === 'DONE') {
-          target.status = "已介紹";
-      }
-
-      saveCollapseState();
-      renderMainVIPs();
-
-      var postAction = (actionType === 'CHECKIN') ? 'receptionAction' : 'updateStatus';
-      var postType = (actionType === 'CHECKIN') ? 'CHECKIN' : 'DONE';
-
-      fetch(API_URL, { 
-          method: "POST", 
-          body: JSON.stringify({ action: postAction, rowIndex: rowIndex, type: postType }) 
-      })
-      .then(() => {
-          setTimeout(() => {
-             isProcessing = false; 
-             fetchData(); 
-             startTimer(); 
-          }, 2500); 
-      })
-      .catch(err => {
-          console.error(err); alert("連線異常"); isProcessing = false; startTimer();
-      });
-  }
-
-  function openGuestModal() {
-      renderGuestModal();
-      guestModal.show();
-  }
-
-  function renderGuestModal() {
-      var list = document.getElementById('guest-list-body');
-      var keyword = document.getElementById('guest-search').value.toLowerCase().trim();
-      var guestData = localData.filter(d => d.source === 'GUEST');
-
-      if (keyword) {
-          guestData = guestData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
-      }
-
-      guestData.sort((a, b) => {
-        if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-        var pA = a.priority || 0; var pB = b.priority || 0;
-        if (pA !== pB) return pB - pA;
-        var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-        if (tA < tB) return -1; if (tA > tB) return 1; return 0; 
-      });
-
-      var html = "";
-      if(guestData.length === 0) {
-          html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
-      } else {
-          html += `<div class="row g-2">`;
-          guestData.forEach(item => {
-            var isDone = item.status === "已介紹";
-            var pLevel = item.priority || 0;
-            var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : "";
-            var btnHtml = !isDone 
-                ? `<div class="btn-pin s-level-${pLevel}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
-                : `<button class="btn-undo" onclick="undoGuest(${item.rowIndex})">↩️ 回復</button>`;
-            
-            html += `
-            <div class="col-12 col-md-6">
-                <div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}">
-                  <div class="time">${timeDisplay}</div>
-                  <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-                  <div class="d-flex align-items-center">${btnHtml}</div>
-                </div>
-            </div>`;
-          });
-          html += `</div>`; 
-      }
-      list.innerHTML = html;
-  }
-
-  function cycleGuestPriority(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) {
-          var newP = ((target.priority || 0) + 1) % 4;
-          target.priority = newP;
-          renderGuestModal(); 
-          if(timer) clearInterval(timer); 
-          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-          setTimeout(startTimer, 3000); 
-      }
-  }
-
-  function markGuestDone(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) { target.status = "已介紹"; target.priority = 0; }
-      renderGuestModal();
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
-  }
-
-  function undoGuest(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) { target.status = "待介紹"; }
-      renderGuestModal();
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
-  }
-</script>
-</body>
-</html>
