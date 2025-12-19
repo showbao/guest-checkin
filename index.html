@@ -8,31 +8,12 @@
   <style>
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .portal-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 600px; width: 100%; text-align: center; }
-    
-    .school-header { 
-        font-weight: 700; color: #6c757d; margin-bottom: 5px; letter-spacing: 1px;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        font-size: clamp(1rem, 4vw, 1.5rem); 
-    }
-    
-    .main-title { 
-        font-weight: 800; color: #333; margin-bottom: 40px;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        font-size: clamp(1.5rem, 6vw, 3rem);
-        line-height: 1.2;
-    }
-    
-    .btn-portal { 
-        display: block; width: 100%; padding: 20px; margin-bottom: 20px; 
-        border-radius: 16px; border: none; font-size: 1.3rem; font-weight: bold; 
-        transition: transform 0.1s, box-shadow 0.2s; 
-        text-decoration: none; color: white; cursor: pointer;
-    }
+    .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; letter-spacing: 1px; font-size: clamp(1rem, 4vw, 1.5rem); }
+    .main-title { font-weight: 800; color: #333; margin-bottom: 40px; font-size: clamp(1.5rem, 6vw, 3rem); line-height: 1.2; }
+    .btn-portal { display: block; width: 100%; padding: 20px; margin-bottom: 20px; border-radius: 16px; border: none; font-size: 1.3rem; font-weight: bold; transition: transform 0.1s; text-decoration: none; color: white; cursor: pointer; }
     .btn-portal:active { transform: scale(0.98); }
     .btn-guest { background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     .btn-host { background: white; color: #333; border: 2px solid #333; }
-    .btn-reception { background: #f0f2f5; color: #555; }
-    
     .modal-content { border-radius: 20px; }
     .modal-header { border-bottom: none; }
     .modal-footer { border-top: none; }
@@ -45,10 +26,7 @@
     <h1 class="main-title" id="site-title">活動載入中...</h1>
 
     <a href="guest.html" class="btn-portal btn-guest">👋 來賓自助簽到</a>
-    
-    <button onclick="openLogin()" class="btn-portal btn-host">
-      🔐 工作人員登入
-    </button>
+    <button onclick="openLogin()" class="btn-portal btn-host">🔐 工作人員登入</button>
   </div>
 
   <div class="modal fade" id="pwdModal" tabindex="-1">
@@ -60,7 +38,7 @@
             <div id="login-msg" class="text-center mt-2 text-danger" style="display:none;"></div>
         </div>
         <div class="modal-footer justify-content-center">
-            <button type="button" class="btn btn-dark w-100 py-2 fs-5" id="btn-login-submit" onclick="submitPassword()">登入</button>
+            <button type="button" class="btn btn-dark w-100 py-2 fs-5" onclick="submitPassword()">登入</button>
         </div>
       </div>
     </div>
@@ -72,6 +50,7 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
 
     var modal = new bootstrap.Modal(document.getElementById('pwdModal'));
+    var authData = null; // 儲存預先載入的驗證碼
 
     document.addEventListener("DOMContentLoaded", function() { fetchSettings(); });
 
@@ -80,6 +59,8 @@
         .then(res => res.json()).then(json => {
             document.getElementById('school-name').innerText = json.schoolName || "學校名稱設定中";
             document.getElementById('site-title').innerText = json.eventName || "活動名稱設定中";
+            // 儲存後端傳來的驗證碼
+            if(json.authData) authData = json.authData;
         })
         .catch(err => console.error("Error:", err));
     }
@@ -95,32 +76,28 @@
       var pwd = document.getElementById('modalPwd').value;
       if(!pwd) { alert("請輸入密碼"); return; }
       
-      var btn = document.getElementById('btn-login-submit');
-      var msg = document.getElementById('login-msg');
-      btn.innerText = "驗證中..."; btn.disabled = true; msg.style.display = 'none';
-
-      // 呼叫後端驗證
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "login", password: pwd }) })
-      .then(res => res.json()).then(json => {
-          if(json.status === "success") {
-              if(json.role === "admin") {
-                  sessionStorage.setItem('host_password', pwd);
-                  window.location.href = 'admin.html';
-              } else if(json.role === "reception") {
-                  sessionStorage.setItem('reception_password', pwd);
-                  window.location.href = 'reception.html';
-              }
-          } else {
-              msg.innerText = "密碼錯誤，請重試";
-              msg.style.display = 'block';
-              btn.innerText = "登入"; btn.disabled = false;
+      // 本地極速驗證 (Local Fast Auth)
+      // 使用 btoa() 進行 Base64 編碼比對
+      try {
+          var inputHash = btoa(pwd);
+          
+          if (authData && inputHash === authData.admin) {
+              sessionStorage.setItem('host_password', pwd);
+              window.location.href = 'admin.html';
+              return;
+          } else if (authData && inputHash === authData.reception) {
+              sessionStorage.setItem('reception_password', pwd);
+              window.location.href = 'reception.html';
+              return;
           }
-      })
-      .catch(err => {
-          msg.innerText = "連線錯誤";
-          msg.style.display = 'block';
-          btn.innerText = "登入"; btn.disabled = false;
-      });
+      } catch(e) {
+          console.log("Encoding error");
+      }
+
+      // 如果本地驗證失敗 (或資料還沒載入)，顯示錯誤 (不做後端驗證了，因為本地資料應該要是同步的)
+      var msg = document.getElementById('login-msg');
+      msg.innerText = "密碼錯誤，請重試";
+      msg.style.display = 'block';
     }
     
     document.getElementById('modalPwd').addEventListener("keypress", function(e) { if (e.key === "Enter") submitPassword(); });
