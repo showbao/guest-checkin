@@ -10,7 +10,8 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
+    #login-box { display: none; }
+    
     .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1rem, 4vw, 1.2rem); text-align: center; }
     .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -22,13 +23,11 @@
     
     #main-app { display: none; width: 100%; }
     
-    /* 搜尋框 */
     .search-container { margin-bottom: 20px; }
     .search-box { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 1.2rem; transition: border-color 0.3s; }
     .search-box:focus { border-color: #333; outline: none; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
 
-    /* VIP 卡片 */
     .vip-card {
         background: white; border-radius: 12px; padding: 15px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;
@@ -53,7 +52,6 @@
     .dot-green { background: #198754; box-shadow: 0 0 5px #198754; }
     .dot-gray { background: #ccc; }
 
-    /* 分區標題 */
     .section-header { 
         padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
@@ -69,7 +67,6 @@
 
     .dash-group-title { font-size: 1rem; color: #333; margin: 15px 5px 10px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
 
-    /* 現場報到卡片 */
     .guest-card { 
         border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
@@ -152,14 +149,22 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var levelNames = {}; var guestModal;
   var isProcessing = false; 
   var sectionStates = { active: true, pending: false, done: false };
+  var lastJsonStr = "";
 
   document.addEventListener("DOMContentLoaded", function() {
+    var cached = localStorage.getItem('siteSettings');
+    if(cached) {
+        var data = JSON.parse(cached);
+        document.getElementById('school-header-main').innerText = data.schoolName || "";
+        document.getElementById('event-header').innerText = data.eventName || "";
+    }
+
     guestModal = new bootstrap.Modal(document.getElementById('guestModal'));
     var storedPwd = sessionStorage.getItem('host_password');
     if (storedPwd) { 
@@ -193,15 +198,18 @@
       document.querySelector('.container').style.justifyContent = 'flex-start';
       
       if(json.settings) {
-          if(json.settings.schoolName) {
-             document.querySelector('#login-box .school-header').innerText = json.settings.schoolName;
-             document.getElementById('school-header-main').innerText = json.settings.schoolName;
-          }
+          if(json.settings.schoolName) document.getElementById('school-header-main').innerText = json.settings.schoolName;
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
           if(json.settings.levelNames) levelNames = json.settings.levelNames; else levelNames = json.settings;
+          
+          localStorage.setItem('siteSettings', JSON.stringify({
+              schoolName: json.settings.schoolName,
+              eventName: json.settings.eventName
+          }));
       }
 
       localData = json.data; 
+      lastJsonStr = JSON.stringify(localData);
       renderMainVIPs(); 
       startTimer();
     })
@@ -221,6 +229,11 @@
       if(isProcessing) return;
 
       if(json.status === "error") { return; } 
+      
+      var currentJsonStr = JSON.stringify(json.data);
+      if (currentJsonStr === lastJsonStr) return; // 資料未變，略過渲染
+      
+      lastJsonStr = currentJsonStr;
       localData = json.data; 
       renderMainVIPs(); 
       if(document.getElementById('guestModal').classList.contains('show')) {
@@ -234,7 +247,6 @@
       var elActive = document.getElementById('collapse-active');
       var elPending = document.getElementById('collapse-pending');
       var elDone = document.getElementById('collapse-done');
-      
       if(elActive) sectionStates.active = elActive.classList.contains('show');
       if(elPending) sectionStates.pending = elPending.classList.contains('show');
       if(elDone) sectionStates.done = elDone.classList.contains('show');
