@@ -6,36 +6,71 @@
   <title>接待處報到</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* (樣式維持上一版，僅增加 select 樣式) */
     * { box-sizing: border-box; } 
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+
+    /* 登入卡片 */
     #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 50px auto; text-align: center; }
-    .school-header { font-size: clamp(1rem, 4vw, 1.2rem); color: #6c757d; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .school-header { font-size: 1.1rem; color: #6c757d; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .login-title { font-size: 1.5rem; font-weight: 800; color: #333; margin-bottom: 30px; }
     .input-custom { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; text-align: center; }
     .btn-login { background: #000; color: white; border-radius: 12px; padding: 12px; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px; }
+
+    /* 主畫面 */
     #main-app { display: none; width: 100%; }
     .event-main-title { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* 工具區 */
     .tools-container { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .search-box { border-radius: 12px; padding: 12px; border: 2px solid #eee; width: 100%; margin-bottom: 15px; font-size: 1.1rem; }
+    .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .search-box { border-radius: 12px; padding: 12px; border: 2px solid #eee; font-size: 1.1rem; flex: 1; }
+    .btn-refresh { padding: 0 20px; border-radius: 12px; background: #212529; color: white; border: none; font-weight: bold; white-space: nowrap;}
+    
     .add-area { border-top: 1px dashed #ddd; padding-top: 15px; }
     .add-label { font-weight: bold; color: #666; margin-bottom: 8px; display: block; font-size: 0.9rem; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-left: 5px solid #000; padding-left: 10px; }
-    .section-title { font-size: 1.2rem; font-weight: bold; color: #555; }
-    .btn-refresh { font-size: 0.9rem; padding: 5px 15px; border-radius: 20px; background: #6c757d; color: white; border: none; font-weight: bold; }
-    .row-card { border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: none !important; box-shadow: 0 0 0 1px #e0e0e0; background: white; min-height: 80px; transition: all 0.3s ease; }
-    .row-card.arrived { background: #e8f5e9; border: 1px solid #c8e6c9 !important; box-shadow: none; }
-    .info { flex: 1; padding-right: 15px; } .job { font-size: 14px; color: #666; display: block; } .name { font-size: 20px; font-weight: 800; color: #000; }
-    .btn-checkin { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 50px; font-weight: bold; min-width: 80px; }
-    .btn-undo { background: #ffc107; color: #333; border: none; padding: 8px 20px; border-radius: 50px; font-size: 14px; min-width: 80px; }
-    .btn-add { background: #212529; color: white; font-weight: bold; border-radius: 8px; }
-    .form-select { border-radius: 12px; padding: 10px; border: 2px solid #eee; }
+
+    /* 分區標題 (可收合) */
+    .section-header { 
+        padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
+        display: flex; justify-content: space-between; align-items: center;
+        border-left: 5px solid #666; margin-top: 20px; margin-bottom: 10px; border-radius: 0 8px 8px 0;
+        cursor: pointer; transition: background 0.2s;
+    }
+    .section-header:hover { background: #dee2e6; }
+    .section-header.pending-zone { border-left-color: #dc3545; color: #dc3545; background: #fff5f5; } /* 待報到區特別色 */
     
-    @media (max-width: 576px) { .event-main-title { font-size: 1.6rem !important; margin: 15px 0; } .row-card { padding: 15px; min-height: 90px; } .name { font-size: 20px; } }
+    .collapse-icon { transition: transform 0.3s; }
+    .collapsed .collapse-icon { transform: rotate(-90deg); }
+
+    .dash-group-title { font-size: 1rem; color: #333; margin: 10px 5px 5px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
+
+    /* 卡片樣式 */
+    .row-card { 
+        border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
+        border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
+        background: white; min-height: 80px; transition: all 0.3s ease; 
+    }
+    
+    .row-card.arrived { background: #f8f9fa; opacity: 0.6; box-shadow: none; } /* 變淡 */
+    .row-card.arrived .name { text-decoration: line-through; color: #999; }
+
+    .info { flex: 1; padding-right: 15px; }
+    .job { font-size: 14px; color: #666; display: block; }
+    .name { font-size: 20px; font-weight: 800; color: #000; }
+
+    .btn-checkin { background: #dc3545; color: white; border: none; padding: 10px 25px; border-radius: 50px; font-weight: bold; min-width: 80px; }
+    .btn-add { background: #212529; color: white; font-weight: bold; border-radius: 8px; }
+
+    @media (max-width: 576px) {
+        .event-main-title { font-size: 1.6rem !important; margin: 15px 0; }
+        .row-card { padding: 15px; min-height: 90px; }
+        .name { font-size: 20px; }
+    }
   </style>
 </head>
 <body>
+
 <div class="container" id="login-section">
   <div id="login-box">
     <div class="school-header">載入中...</div>
@@ -50,39 +85,34 @@
   <h1 id="event-header" class="event-main-title"></h1>
 
   <div class="tools-container">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <span style="font-weight:bold; color:#666;">資料同步</span>
-        <button onclick="manualLogin()" class="btn-refresh">🔄 立即更新</button>
+    <div class="search-row">
+        <input type="text" id="search" class="form-control search-box" placeholder="🔍 搜尋姓名或職稱..." onkeyup="filterList()">
+        <button onclick="manualUpdate()" class="btn-refresh">🔄 立即更新</button>
     </div>
-    <input type="text" id="search" class="form-control search-box" placeholder="🔍 搜尋姓名或職稱..." onkeyup="filterList()">
     
     <div class="add-area">
       <span class="add-label">➕ 現場補登 (名單外貴賓)</span>
       <div class="row g-2">
-        <div class="col-3">
-            <select id="new-level" class="form-select">
-                <option value="0">一般</option>
-            </select>
-        </div>
-        <div class="col-3"><input type="text" id="new-job" class="form-control" placeholder="職稱"></div>
-        <div class="col-4"><input type="text" id="new-name" class="form-control" placeholder="姓名"></div>
-        <div class="col-2"><button onclick="addNew()" class="btn btn-add w-100">新增</button></div>
+        <div class="col-4"><input type="text" id="new-job" class="form-control" placeholder="職稱"></div>
+        <div class="col-5"><input type="text" id="new-name" class="form-control" placeholder="姓名"></div>
+        <div class="col-3"><button onclick="addNew()" class="btn btn-add w-100">新增</button></div>
       </div>
     </div>
   </div>
 
-  <div class="section-header"><span class="section-title">🛑 未報到名單</span></div>
-  <div id="list-pending"></div>
-
-  <div class="section-header"><span class="section-title">✅ 已報到名單</span></div>
-  <div id="list-arrived"></div>
+  <div id="guest-list"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var allGuests = []; var levelNames = {};
+  var isProcessing = false;
+  
+  // 狀態記憶：待報到預設開(true)，其他預設關(false)
+  var sectionStates = { pending: true, active: false, done: false };
 
   window.onload = function() {
     var storedPwd = sessionStorage.getItem('reception_password');
@@ -92,15 +122,13 @@
   function manualLogin() {
     PASSWORD = document.getElementById('pwd').value;
     var btn = document.querySelector('.btn-login'); if(btn) { btn.innerText = "驗證中..."; btn.disabled = true; }
-    var refreshBtn = document.querySelector('.btn-refresh'); if(refreshBtn) { refreshBtn.innerText = "..."; refreshBtn.disabled = true; }
 
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
-      if(refreshBtn) { refreshBtn.innerText = "🔄 立即更新"; refreshBtn.disabled = false; }
       if(btn) { btn.innerText = "進入系統"; btn.disabled = false; }
 
       if(json.status === "error") { 
-        alert("登入失敗"); sessionStorage.removeItem('reception_password'); return; 
+        alert("登入失敗：" + json.message); sessionStorage.removeItem('reception_password'); return; 
       }
       
       document.getElementById('login-section').style.display = 'none';
@@ -112,94 +140,179 @@
              document.getElementById('school-header-main').innerText = json.settings.schoolName;
           }
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
-          
-          // 更新下拉選單
-          if(json.settings.levelNames) {
-              var select = document.getElementById('new-level');
-              select.innerHTML = "";
-              // 依序加入選項 3, 2, 1, 0
-              [3, 2, 1, 0].forEach(l => {
-                  var name = json.settings.levelNames[l] || "等級"+l;
-                  var opt = document.createElement('option');
-                  opt.value = l;
-                  opt.innerText = name;
-                  select.appendChild(opt);
-              });
-              select.value = 0; // 預設一般
-          }
+          if(json.settings.levelNames) levelNames = json.settings.levelNames; else levelNames = json.settings;
       }
       
       allGuests = json.data; 
-      renderLists(allGuests);
+      renderLists();
     })
     .catch(err => { console.error(err); alert("連線錯誤"); });
   }
 
-  function renderLists(data) {
-    var pendingDiv = document.getElementById('list-pending'); var arrivedDiv = document.getElementById('list-arrived');
-    pendingDiv.innerHTML = ""; arrivedDiv.innerHTML = "";
+  function manualUpdate() {
+      if(isProcessing) return;
+      // 紀錄狀態
+      saveCollapseState();
+      
+      var btn = document.querySelector('.btn-refresh');
+      var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+      
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
+      .then(res => res.json()).then(json => {
+          btn.innerText = orgText; btn.disabled = false;
+          if(json.status === "success") {
+              allGuests = json.data;
+              renderLists();
+          }
+      });
+  }
+
+  function saveCollapseState() {
+      var elPending = document.getElementById('collapse-pending');
+      var elActive = document.getElementById('collapse-active');
+      var elDone = document.getElementById('collapse-done');
+      
+      if(elPending) sectionStates.pending = elPending.classList.contains('show');
+      if(elActive) sectionStates.active = elActive.classList.contains('show');
+      if(elDone) sectionStates.done = elDone.classList.contains('show');
+  }
+
+  function renderLists() {
+    var list = document.getElementById('guest-list'); 
+    var keyword = document.getElementById('search').value.toLowerCase().trim();
     
     // 過濾掉 Source=GUEST (自助簽到不顯示在接待端)
-    var receptionData = data.filter(d => d.source !== "GUEST");
+    var receptionData = allGuests.filter(d => d.source !== "GUEST");
+
+    if(keyword) {
+        receptionData = receptionData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
+    }
 
     var pendingList = receptionData.filter(d => d.status === "未報到");
-    pendingList.sort((a, b) => a.rowIndex - b.rowIndex);
+    var activeList = receptionData.filter(d => d.status === "待介紹");
+    var doneList = receptionData.filter(d => d.status === "已介紹");
 
-    var arrivedList = receptionData.filter(d => d.status === "待介紹" || d.status === "已介紹");
-    arrivedList.sort((a, b) => {
-        var timeA = a.checkInTime || "00:00:00"; var timeB = b.checkInTime || "00:00:00";
-        if (timeA < timeB) return 1; if (timeA > timeB) return -1; return 0;
-    });
+    var html = "";
+    
+    // 依據 sectionStates 決定展開狀態
+    var showPending = sectionStates.pending ? "show" : "";
+    var showActive = sectionStates.active ? "show" : "";
+    var showDone = sectionStates.done ? "show" : "";
 
-    if(pendingList.length === 0) pendingDiv.innerHTML = "<div class='text-center p-3 text-muted'>無</div>";
-    pendingList.forEach(item => {
-        var html = `<div class="row-card" id="card-${item.rowIndex}">
-          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-          <button class="btn-checkin" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">未報到</button>
-        </div>`;
-        pendingDiv.innerHTML += html;
-    });
+    // 1. 待報到 (Pending) - 放在最上面，預設展開，紅色 Header
+    html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingList, showPending, "pending-zone");
 
-    if(arrivedList.length === 0) arrivedDiv.innerHTML = "<div class='text-center p-3 text-muted'>無</div>";
-    arrivedList.forEach(item => {
-        var html = `<div class="row-card arrived" id="card-${item.rowIndex}">
-          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-          <button class="btn-undo" onclick="toggleStatus(${item.rowIndex}, 'UNDO')">回復</button>
-        </div>`;
-        arrivedDiv.innerHTML += html;
-    });
+    // 2. 已到現場 (Active) - 放在中間，預設收合
+    html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeList, showActive, "");
+
+    // 3. 已介紹 (Done) - 放在最後，預設收合
+    html += createSectionHtml("done", "⚫ 已完成 (已介紹)", doneList, showDone, "");
+
+    list.innerHTML = html;
+  }
+
+  function createSectionHtml(type, title, data, showClass, headerClass) {
+      var collapsedState = showClass ? "" : "collapsed";
+      var count = data.length;
+      
+      var html = `
+        <div class="section-header ${headerClass} ${collapsedState}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}" onclick="saveCollapseState()">
+            <span>${title} <span class="badge bg-secondary ms-2">${count}</span></span>
+            <span class="collapse-icon">▼</span>
+        </div>
+        <div id="collapse-${type}" class="collapse ${showClass}">
+      `;
+
+      if(data.length === 0) {
+          html += `<div class="text-center p-3 text-muted">無資料</div>`;
+      } else {
+          // 排序：等級高->低，若是未報到則依 Sheet 順序
+          data.sort((a, b) => {
+              var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
+              if (lvlA !== lvlB) return lvlB - lvlA;
+              if(type === 'pending') return a.rowIndex - b.rowIndex; 
+              var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
+              if (tA < tB) return -1; if (tA > tB) return 1; return 0;
+          });
+
+          // 分組渲染
+          [3, 2, 1, 0].forEach(lvl => {
+              var items = data.filter(d => (d.originLevel || 0) === lvl);
+              if (items.length > 0) {
+                  var groupName = (levelNames && levelNames[lvl]) ? levelNames[lvl] : "貴賓";
+                  html += `<div class="dash-group-title">${groupName}</div>`;
+                  items.forEach(item => {
+                      // 按鈕邏輯：只有 "pending" (未報到) 顯示按鈕
+                      var btnHtml = "";
+                      var rowClass = "row-card";
+                      
+                      if(type === "pending") {
+                          btnHtml = `<button class="btn-checkin" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">報到</button>`;
+                      } else if(type === "active") {
+                          // 待介紹：無按鈕
+                          btnHtml = `<span class="text-success fw-bold">已報到</span>`;
+                      } else {
+                          // 已完成
+                          rowClass += " arrived";
+                          btnHtml = `<span class="text-muted">已完成</span>`;
+                      }
+
+                      html += `<div class="${rowClass}" id="card-${item.rowIndex}">
+                          <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
+                          <div>${btnHtml}</div>
+                        </div>`;
+                  });
+              }
+          });
+      }
+      html += `</div>`;
+      return html;
   }
 
   function filterList() {
-    var keyword = document.getElementById('search').value.toLowerCase().trim();
-    if(!keyword) { renderLists(allGuests); return; }
-    var filtered = allGuests.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
-    renderLists(filtered); 
+    renderLists();
   }
 
   function toggleStatus(rowIndex, type) {
+    if(isProcessing) return;
+    isProcessing = true;
+
+    // Optimistic Update
     var target = allGuests.find(g => g.rowIndex == rowIndex);
     if (target) {
-        if (type === "CHECKIN") { target.status = "待介紹"; var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0]; } 
-        else { target.status = "未報到"; target.checkInTime = ""; }
+        if (type === "CHECKIN") { 
+            target.status = "待介紹"; 
+            var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0]; 
+        } 
     }
-    var keyword = document.getElementById('search').value.trim();
-    if(keyword) filterList(); else renderLists(allGuests);
-    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) });
+    
+    saveCollapseState();
+    renderLists();
+
+    fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) })
+    .then(() => {
+        // 等待寫入後重新整理
+        setTimeout(() => {
+            isProcessing = false;
+            manualUpdate();
+        }, 1500);
+    })
+    .catch(() => { isProcessing = false; });
   }
 
   function addNew() {
     var title = document.getElementById('new-job').value;
     var name = document.getElementById('new-name').value;
-    var level = document.getElementById('new-level').value;
     if(!name) { alert("請輸入姓名"); return; }
+    
     if(confirm(`確認新增並報到：\n${title} ${name} ？`)) {
         var btn = document.querySelector('.btn-add'); var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
-        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name, level: level, isReception: true }) })
+        // 補登預設 Level 0 (一般)
+        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: title, name: name, level: 0, isReception: true }) })
         .then(() => {
             alert("新增成功！");
             document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; 
-            manualLogin(); 
+            manualUpdate(); 
             btn.innerText = orgText; btn.disabled = false;
         });
     }
