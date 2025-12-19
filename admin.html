@@ -158,6 +158,7 @@
   var isProcessing = false; 
   var sectionStates = { active: true, pending: false, done: false };
   var lastJsonStr = "";
+  var sortDebounceTimer = null; // 排序延遲計時器
 
   document.addEventListener("DOMContentLoaded", function() {
     var cached = localStorage.getItem('siteSettings');
@@ -233,7 +234,7 @@
       if(json.status === "error") { return; } 
       
       var currentJsonStr = JSON.stringify(json.data);
-      if (currentJsonStr === lastJsonStr) return; // 資料未變，略過渲染
+      if (currentJsonStr === lastJsonStr) return; 
       
       lastJsonStr = currentJsonStr;
       localData = json.data; 
@@ -394,13 +395,18 @@
           guestData = guestData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
       }
 
-      // 🔥 優化排序：狀態(待介紹優先) -> 星級(高->低) -> 時間(早->晚)
+      // 🔥 排序：待介紹 > 星級(大到小) > 時間(小到大)
       guestData.sort((a, b) => {
+        // 1. 狀態: 待介紹優先
         if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
+        
+        // 2. 星級: 大的在上面
         var pA = a.priority || 0; var pB = b.priority || 0;
-        if (pA !== pB) return pB - pA; // 星級大到小
+        if (pA !== pB) return pB - pA;
+        
+        // 3. 時間: 小的在上面 (早來的先顯示)
         var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-        if (tA < tB) return -1; if (tA > tB) return 1; return 0; // 時間小到大
+        if (tA < tB) return -1; if (tA > tB) return 1; return 0; 
       });
 
       var html = "";
@@ -413,12 +419,12 @@
             var pLevel = item.priority || 0;
             var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : "";
             var btnHtml = !isDone 
-                ? `<div class="btn-pin s-level-${pLevel}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
+                ? `<div class="btn-pin s-level-${pLevel}" id="btn-pin-${item.rowIndex}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
                 : `<button class="btn-undo" onclick="undoGuest(${item.rowIndex})">↩️ 回復</button>`;
             
             html += `
             <div class="col-12 col-md-6">
-                <div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}">
+                <div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}" id="guest-card-${item.rowIndex}">
                   <div class="time">${timeDisplay}</div>
                   <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
                   <div class="d-flex align-items-center">${btnHtml}</div>
@@ -430,15 +436,35 @@
       list.innerHTML = html;
   }
 
+  // 🔥 關鍵優化：點擊星星時，原地更新視覺，延遲排序
   function cycleGuestPriority(rowIndex) {
       var target = localData.find(d => d.rowIndex == rowIndex);
       if(target) {
           var newP = ((target.priority || 0) + 1) % 4;
           target.priority = newP;
-          renderGuestModal(); 
-          if(timer) clearInterval(timer); 
+          
+          // 1. 原地更新 DOM，不重繪整個列表
+          var card = document.getElementById('guest-card-' + rowIndex);
+          var btn = document.getElementById('btn-pin-' + rowIndex);
+          if(card && btn) {
+              // 移除舊 class
+              card.classList.remove('level-0', 'level-1', 'level-2', 'level-3', 'level-4');
+              btn.classList.remove('s-level-0', 's-level-1', 's-level-2', 's-level-3', 's-level-4');
+              // 加上新 class
+              card.classList.add('level-' + newP);
+              btn.classList.add('s-level-' + newP);
+          }
+
+          // 2. 清除之前的計時器，重新計時 (防手震)
+          if(sortDebounceTimer) clearTimeout(sortDebounceTimer);
+          
+          // 3. 傳送 API (不影響畫面)
           fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-          setTimeout(startTimer, 3000); 
+          
+          // 4. 延遲 2 秒後才重新排序渲染 (讓主持人有時間連按)
+          sortDebounceTimer = setTimeout(() => {
+              renderGuestModal();
+          }, 2000);
       }
   }
 
