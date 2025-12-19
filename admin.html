@@ -35,6 +35,7 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;
         display: flex; justify-content: space-between; align-items: center;
         margin-bottom: 10px; transition: all 0.3s;
+        height: 100%; /* 確保同列等高 */
     }
     .vip-card.is-done { background: #f9f9f9; opacity: 0.6; }
     .vip-card.is-done .vip-name, .vip-card.is-done .vip-job { text-decoration: line-through; color: #999; }
@@ -65,7 +66,6 @@
     .section-header.active-zone { background: #e8f5e9; border-left-color: #198754; color: #198754; }
     .section-header.active-zone:hover { background: #d1e7dd; }
     
-    /* 收合箭頭動畫 */
     .collapse-icon { transition: transform 0.3s; }
     .collapsed .collapse-icon { transform: rotate(-90deg); }
 
@@ -73,9 +73,9 @@
 
     /* === 現場報到卡片 (彈窗用) === */
     .guest-card { 
-        border-radius: 12px; padding: 15px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; 
+        border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
-        background: white; min-height: 90px; transition: background-color 0.3s ease; 
+        background: white; min-height: 90px; transition: background-color 0.3s ease; height: 100%;
     }
     .level-0 { background: white; } .level-1 { background: #f0fff4; } .level-2 { background: #fffdf5; } .level-3 { background: #fef2f2; } 
     .level-4 { background: #fff; box-shadow: 0 0 0 4px #dc3545, 0 4px 15px rgba(220,53,69,0.3) !important; animation: flashBorder 2s infinite; }
@@ -88,10 +88,10 @@
     .job { font-size: 14px; color: #666; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-size: 20px; font-weight: 800; color: #000; display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    .btn-pin { width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; }
+    .btn-pin { width: 40px; height: 40px; border-radius: 50%; box-shadow: 0 0 0 1px #ddd; background: white; color: #ccc; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; flex-shrink: 0;}
     .btn-pin.s-level-1 { color: #198754; box-shadow: 0 0 0 1px #198754; } .btn-pin.s-level-2 { color: #ffc107; box-shadow: 0 0 0 1px #ffc107; } .btn-pin.s-level-3 { color: #dc3545; box-shadow: 0 0 0 1px #dc3545; }
-    .btn-ok { background: #198754; color: white; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 40px; font-weight: bold; }
-    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 10px; border-radius: 10px; font-size: 14px; cursor: pointer; height: 40px; }
+    .btn-ok { background: #198754; color: white; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 40px; font-weight: bold; flex-shrink: 0;}
+    .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 10px; border-radius: 10px; font-size: 14px; cursor: pointer; height: 40px; flex-shrink: 0;}
 
     /* Modal Header */
     .modal-header { background: #212529; color: white; border-bottom: none; }
@@ -159,7 +159,10 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var levelNames = {}; var guestModal;
-  var isProcessing = false; // 🔒 寫入鎖定
+  var isProcessing = false; // 寫入鎖定
+  
+  // 🔥 狀態記憶 (預設值：已到=開, 待報到=關, 已介紹=關)
+  var sectionStates = { active: true, pending: false, done: false };
 
   document.addEventListener("DOMContentLoaded", function() {
     guestModal = new bootstrap.Modal(document.getElementById('guestModal'));
@@ -187,12 +190,7 @@
              document.getElementById('school-header-main').innerText = json.settings.schoolName;
           }
           if(json.settings.eventName) document.getElementById('event-header').innerText = json.settings.eventName;
-          
-          if(json.settings.levelNames) {
-              levelNames = json.settings.levelNames;
-          } else {
-              levelNames = json.settings;
-          }
+          if(json.settings.levelNames) levelNames = json.settings.levelNames; else levelNames = json.settings;
       }
 
       localData = json.data; 
@@ -206,12 +204,15 @@
   function manualUpdate() { fetchData(); startTimer(); }
   
   function fetchData() {
-    if(isProcessing) return;
+    if(isProcessing) return; // 鎖定中不更新
+
+    // 🔥 更新前先紀錄目前的收合狀態
+    saveCollapseState();
 
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
-      if(isProcessing) return;
+      if(isProcessing) return; // 二次檢查
 
       if(json.status === "error") { return; } 
       localData = json.data; 
@@ -222,6 +223,17 @@
       var now = new Date(); statusLabel.innerText = "最後更新: " + now.toLocaleTimeString();
     });
   }
+
+  // 紀錄收合狀態的函式
+  function saveCollapseState() {
+      var elActive = document.getElementById('collapse-active');
+      var elPending = document.getElementById('collapse-pending');
+      var elDone = document.getElementById('collapse-done');
+      
+      if(elActive) sectionStates.active = elActive.classList.contains('show');
+      if(elPending) sectionStates.pending = elPending.classList.contains('show');
+      if(elDone) sectionStates.done = elDone.classList.contains('show');
+  }
   
   // ==========================================
   // 1. 主畫面渲染：VIP 名單 (三區塊分流)
@@ -231,34 +243,38 @@
       var keyword = document.getElementById('vip-search').value.toLowerCase().trim();
       
       var vipData = localData.filter(d => d.source !== 'GUEST');
-      
       if (keyword) {
           vipData = vipData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
       }
 
-      // 分區：1.已到(待介紹), 2.未報到(待報到), 3.已介紹
       var activeData = vipData.filter(d => d.status === "待介紹");
       var pendingData = vipData.filter(d => d.status === "未報到");
       var doneData = vipData.filter(d => d.status === "已介紹");
 
       var html = "";
 
-      // --- Section 1: 已到現場 (待介紹) - 預設展開 ---
-      html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeData, "show", "active-zone");
-
-      // --- Section 2: 待報到 (尚未到校) - 預設收合 ---
-      html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingData, "", "");
-
-      // --- Section 3: 已介紹 - 預設收合 ---
-      html += createSectionHtml("done", "⚫ 已介紹", doneData, "", "");
+      // 依照 sectionStates 決定是否加上 "show" class
+      var showActive = sectionStates.active ? "show" : "";
+      var showPending = sectionStates.pending ? "show" : "";
+      var showDone = sectionStates.done ? "show" : "";
+      
+      // header 如果展開要加上 active-zone 樣式 (或是保持 header 恆定樣式亦可)
+      // 這裡僅針對 "已到現場" 加上特殊色 header
+      
+      html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeData, showActive, "active-zone");
+      html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingData, showPending, "");
+      html += createSectionHtml("done", "⚫ 已介紹", doneData, showDone, "");
 
       list.innerHTML = html;
   }
 
   function createSectionHtml(type, title, data, showClass, headerClass) {
+      // 為了正確顯示箭頭方向，如果沒 show 則 header 加上 collapsed class
+      var collapsedState = showClass ? "" : "collapsed";
+      
       var count = data.length;
       var html = `
-        <div class="section-header ${headerClass}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}">
+        <div class="section-header ${headerClass} ${collapsedState}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}" onclick="saveCollapseState()">
             <span>${title} <span class="badge bg-secondary ms-2">${count}</span></span>
             <span class="collapse-icon">▼</span>
         </div>
@@ -268,13 +284,11 @@
       if(data.length === 0) {
           html += `<div class="text-center p-3 text-muted">無資料</div>`;
       } else {
-          // 排序: 等級高->低 > 報到時間早->晚 (或 Sheet 順序)
+          // 排序: 等級高->低 > 報到時間早->晚
           data.sort((a, b) => {
               var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
               if (lvlA !== lvlB) return lvlB - lvlA;
-              
-              if (type === 'pending') return a.rowIndex - b.rowIndex; // 未報到依 Sheet 順序
-              
+              if (type === 'pending') return a.rowIndex - b.rowIndex; 
               var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
               if (tA < tB) return -1; if (tA > tB) return 1; return 0;
           });
@@ -290,7 +304,7 @@
           });
           html += `</div>`;
       }
-      html += `</div>`; // End collapse
+      html += `</div>`;
       return html;
   }
 
@@ -299,142 +313,4 @@
       
       if (item.status === "未報到") {
           dotClass = "dot-red";
-          btnHtml = `<button class="vip-btn btn-vip-checkin" onclick="vipAction(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
-      } else if (item.status === "待介紹") {
-          dotClass = "dot-green";
-          // 按鈕文字改為「待介紹」
-          btnHtml = `<button class="vip-btn btn-vip-intro" onclick="vipAction(${item.rowIndex}, 'DONE')">待介紹</button>`;
-      } else { // 已介紹
-          dotClass = "dot-gray";
-          cardClass += " is-done";
-          btnHtml = `<small class="text-muted fw-bold">已完成</small>`;
-      }
-
-      return `<div class="col-12 col-md-6">
-          <div class="${cardClass}">
-            <div class="d-flex align-items-center">
-                <div class="vip-dot ${dotClass}"></div>
-                <div class="vip-info">
-                    <span class="vip-job">${item.title}</span>
-                    <span class="vip-name">${item.name}</span>
-                </div>
-            </div>
-            <div>${btnHtml}</div>
-          </div>
-      </div>`;
-  }
-
-  // ★★★ VIP 動作處理 (含防閃爍) ★★★
-  function vipAction(rowIndex, actionType) {
-      if(timer) clearInterval(timer);
-      isProcessing = true; // 鎖定
-
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if (!target) return;
-
-      // Optimistic UI
-      if (actionType === 'CHECKIN') {
-          target.status = "待介紹";
-          var now = new Date(); target.checkInTime = now.toTimeString().split(' ')[0];
-      } else if (actionType === 'DONE') {
-          target.status = "已介紹";
-      }
-
-      renderMainVIPs();
-
-      var postAction = (actionType === 'CHECKIN') ? 'receptionAction' : 'updateStatus';
-      var postType = (actionType === 'CHECKIN') ? 'CHECKIN' : 'DONE';
-
-      fetch(API_URL, { 
-          method: "POST", 
-          body: JSON.stringify({ action: postAction, rowIndex: rowIndex, type: postType }) 
-      })
-      .then(() => {
-          setTimeout(() => {
-             isProcessing = false; // 解鎖
-             fetchData(); // 重新拉取
-             startTimer(); // 重啟 Timer
-          }, 2500); 
-      })
-      .catch(err => {
-          console.error(err); alert("連線異常"); isProcessing = false; startTimer();
-      });
-  }
-
-  // ==========================================
-  // 2. 彈窗渲染：現場報到來賓 (自助簽到)
-  // ==========================================
-  function openGuestModal() {
-      renderGuestModal();
-      guestModal.show();
-  }
-
-  function renderGuestModal() {
-      var list = document.getElementById('guest-list-body');
-      var keyword = document.getElementById('guest-search').value.toLowerCase().trim();
-      
-      var guestData = localData.filter(d => d.source === 'GUEST');
-
-      if (keyword) {
-          guestData = guestData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
-      }
-
-      // 排序: 待介紹 > 星星 > 時間
-      guestData.sort((a, b) => {
-        if (a.status !== b.status) return a.status === "待介紹" ? -1 : 1;
-        var pA = a.priority || 0; var pB = b.priority || 0;
-        if (pA !== pB) return pB - pA;
-        var tA = a.checkInTime || "99:99:99"; var tB = b.checkInTime || "99:99:99";
-        if (tA < tB) return -1; if (tA > tB) return 1; return 0; 
-      });
-
-      var html = "";
-      if(guestData.length === 0) html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
-      else {
-          guestData.forEach(item => {
-            var isDone = item.status === "已介紹";
-            var pLevel = item.priority || 0;
-            var timeDisplay = item.checkInTime ? item.checkInTime.substring(0, 5) : "";
-            var btnHtml = !isDone 
-                ? `<div class="btn-pin s-level-${pLevel}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
-                : `<button class="btn-undo" onclick="undoGuest(${item.rowIndex})">↩️ 回復</button>`;
-            
-            html += `<div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}">
-              <div class="time">${timeDisplay}</div>
-              <div class="info"><span class="job">${item.title}</span><span class="name">${item.name}</span></div>
-              <div class="d-flex align-items-center">${btnHtml}</div>
-            </div>`;
-          });
-      }
-      list.innerHTML = html;
-  }
-
-  // ★★★ 現場來賓動作 (Modal 內) ★★★
-  function cycleGuestPriority(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) {
-          var newP = ((target.priority || 0) + 1) % 4;
-          target.priority = newP;
-          renderGuestModal(); 
-          if(timer) clearInterval(timer); 
-          fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "PIN" }) });
-          setTimeout(startTimer, 3000); 
-      }
-  }
-
-  function markGuestDone(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) { target.status = "已介紹"; target.priority = 0; }
-      renderGuestModal();
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "DONE" }) });
-  }
-
-  function undoGuest(rowIndex) {
-      var target = localData.find(d => d.rowIndex == rowIndex);
-      if(target) { target.status = "待介紹"; }
-      renderGuestModal();
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateStatus", rowIndex: rowIndex, type: "UNDO" }) });
-  }
-</script>
-</body>
-</html>
+          btnHtml = `<button class="vip-
