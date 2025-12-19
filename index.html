@@ -9,18 +9,15 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .portal-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 600px; width: 100%; text-align: center; }
     
-    /* === 響應式單行文字設定 === */
     .school-header { 
         font-weight: 700; color: #6c757d; margin-bottom: 5px; letter-spacing: 1px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        /* 根據視窗寬度自動調整字體大小，最小 16px，最大 24px */
         font-size: clamp(1rem, 4vw, 1.5rem); 
     }
     
     .main-title { 
         font-weight: 800; color: #333; margin-bottom: 40px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        /* 根據視窗寬度自動調整字體大小，最小 24px，最大 48px */
         font-size: clamp(1.5rem, 6vw, 3rem);
         line-height: 1.2;
     }
@@ -36,7 +33,6 @@
     .btn-host { background: white; color: #333; border: 2px solid #333; }
     .btn-reception { background: #f0f2f5; color: #555; }
     
-    /* Modal */
     .modal-content { border-radius: 20px; }
     .modal-header { border-bottom: none; }
     .modal-footer { border-top: none; }
@@ -49,16 +45,23 @@
     <h1 class="main-title" id="site-title">活動載入中...</h1>
 
     <a href="guest.html" class="btn-portal btn-guest">👋 來賓自助簽到</a>
-    <button onclick="openLogin('admin')" class="btn-portal btn-host">🎤 主持人控台</button>
-    <button onclick="openLogin('reception')" class="btn-portal btn-reception">📋 接待處作業</button>
+    
+    <button onclick="openLogin()" class="btn-portal btn-host">
+      🔐 工作人員登入
+    </button>
   </div>
 
   <div class="modal fade" id="pwdModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content p-3">
-        <div class="modal-header justify-content-center"><h5 class="modal-title fw-bold" id="modalTitle">輸入密碼</h5></div>
-        <div class="modal-body"><input type="password" id="modalPwd" class="form-control form-control-lg text-center" placeholder="請輸入通行碼"></div>
-        <div class="modal-footer justify-content-center"><button type="button" class="btn btn-dark w-100 py-2 fs-5" onclick="submitPassword()">進入系統</button></div>
+        <div class="modal-header justify-content-center"><h5 class="modal-title fw-bold">系統登入</h5></div>
+        <div class="modal-body">
+            <input type="password" id="modalPwd" class="form-control form-control-lg text-center" placeholder="請輸入通行碼">
+            <div id="login-msg" class="text-center mt-2 text-danger" style="display:none;"></div>
+        </div>
+        <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-dark w-100 py-2 fs-5" id="btn-login-submit" onclick="submitPassword()">登入</button>
+        </div>
       </div>
     </div>
   </div>
@@ -68,7 +71,6 @@
     // ⚠️⚠️⚠️ 記得換成最新的 GAS 網址 ⚠️⚠️⚠️
     const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
 
-    var targetPage = "";
     var modal = new bootstrap.Modal(document.getElementById('pwdModal'));
 
     document.addEventListener("DOMContentLoaded", function() { fetchSettings(); });
@@ -82,10 +84,9 @@
         .catch(err => console.error("Error:", err));
     }
 
-    function openLogin(type) {
-      targetPage = type;
-      document.getElementById('modalTitle').innerText = (type === 'admin') ? "🔒 主持人登入" : "🔒 接待處登入";
+    function openLogin() {
       document.getElementById('modalPwd').value = "";
+      document.getElementById('login-msg').style.display = 'none';
       modal.show();
       setTimeout(() => document.getElementById('modalPwd').focus(), 500);
     }
@@ -93,9 +94,35 @@
     function submitPassword() {
       var pwd = document.getElementById('modalPwd').value;
       if(!pwd) { alert("請輸入密碼"); return; }
-      if (targetPage === 'admin') { sessionStorage.setItem('host_password', pwd); window.location.href = 'admin.html'; }
-      else if (targetPage === 'reception') { sessionStorage.setItem('reception_password', pwd); window.location.href = 'reception.html'; }
+      
+      var btn = document.getElementById('btn-login-submit');
+      var msg = document.getElementById('login-msg');
+      btn.innerText = "驗證中..."; btn.disabled = true; msg.style.display = 'none';
+
+      // 呼叫後端驗證
+      fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "login", password: pwd }) })
+      .then(res => res.json()).then(json => {
+          if(json.status === "success") {
+              if(json.role === "admin") {
+                  sessionStorage.setItem('host_password', pwd);
+                  window.location.href = 'admin.html';
+              } else if(json.role === "reception") {
+                  sessionStorage.setItem('reception_password', pwd);
+                  window.location.href = 'reception.html';
+              }
+          } else {
+              msg.innerText = "密碼錯誤，請重試";
+              msg.style.display = 'block';
+              btn.innerText = "登入"; btn.disabled = false;
+          }
+      })
+      .catch(err => {
+          msg.innerText = "連線錯誤";
+          msg.style.display = 'block';
+          btn.innerText = "登入"; btn.disabled = false;
+      });
     }
+    
     document.getElementById('modalPwd').addEventListener("keypress", function(e) { if (e.key === "Enter") submitPassword(); });
   </script>
 </body>
