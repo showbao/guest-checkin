@@ -25,6 +25,7 @@
     .tools-container { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .search-row { display: flex; gap: 10px; margin-bottom: 15px; }
     .search-box { border-radius: 12px; padding: 12px; border: 2px solid #eee; font-size: 1.1rem; flex: 1; }
+    .search-box:focus { border-color: #212529; outline: none; }
     .btn-refresh { padding: 0 20px; border-radius: 12px; background: #212529; color: white; border: none; font-weight: bold; white-space: nowrap;}
     
     .add-area { border-top: 1px dashed #ddd; padding-top: 15px; }
@@ -109,7 +110,8 @@
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var allGuests = []; var levelNames = {};
-  var isProcessing = false;
+  var timer = null; 
+  var isProcessing = false; // 🔥 寫入鎖定：防閃爍關鍵
   
   // 狀態記憶：待報到預設開(true)，其他預設關(false)
   var sectionStates = { pending: true, active: false, done: false };
@@ -145,21 +147,32 @@
       
       allGuests = json.data; 
       renderLists();
+      startTimer(); // 啟動自動更新
     })
     .catch(err => { console.error(err); alert("連線錯誤"); });
   }
 
-  function manualUpdate() {
+  // 自動更新機制
+  function startTimer() { if(timer) clearInterval(timer); timer = setInterval(fetchData, 5000); }
+  function manualUpdate() { fetchData(); startTimer(); }
+
+  function fetchData() {
+      // 🔒 如果正在處理按鈕動作，暫停自動讀取，避免舊資料覆蓋
       if(isProcessing) return;
-      // 紀錄狀態
+
+      // 紀錄收合狀態
       saveCollapseState();
       
       var btn = document.querySelector('.btn-refresh');
-      var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true;
+      if(btn) { var orgText = btn.innerText; btn.innerText = "..."; btn.disabled = true; }
       
       fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getReceptionList", password: PASSWORD }) })
       .then(res => res.json()).then(json => {
-          btn.innerText = orgText; btn.disabled = false;
+          if(btn) { btn.innerText = "🔄 立即更新"; btn.disabled = false; }
+          
+          // 🔒 二次檢查鎖定
+          if(isProcessing) return;
+
           if(json.status === "success") {
               allGuests = json.data;
               renderLists();
@@ -194,18 +207,17 @@
 
     var html = "";
     
-    // 依據 sectionStates 決定展開狀態
     var showPending = sectionStates.pending ? "show" : "";
     var showActive = sectionStates.active ? "show" : "";
     var showDone = sectionStates.done ? "show" : "";
 
-    // 1. 待報到 (Pending) - 放在最上面，預設展開，紅色 Header
+    // 1. 待報到 (Pending) - 預設展開，紅色 Header
     html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingList, showPending, "pending-zone");
 
-    // 2. 已到現場 (Active) - 放在中間，預設收合
+    // 2. 已到現場 (Active) - 預設收合
     html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeList, showActive, "");
 
-    // 3. 已介紹 (Done) - 放在最後，預設收合
+    // 3. 已介紹 (Done) - 預設收合
     html += createSectionHtml("done", "⚫ 已完成 (已介紹)", doneList, showDone, "");
 
     list.innerHTML = html;
@@ -242,15 +254,15 @@
                   var groupName = (levelNames && levelNames[lvl]) ? levelNames[lvl] : "貴賓";
                   html += `<div class="dash-group-title">${groupName}</div>`;
                   items.forEach(item => {
-                      // 按鈕邏輯：只有 "pending" (未報到) 顯示按鈕
                       var btnHtml = "";
                       var rowClass = "row-card";
                       
                       if(type === "pending") {
-                          btnHtml = `<button class="btn-checkin" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">報到</button>`;
+                          // 按鈕修正為「待報到」
+                          btnHtml = `<button class="btn-checkin" onclick="toggleStatus(${item.rowIndex}, 'CHECKIN')">待報到</button>`;
                       } else if(type === "active") {
-                          // 待介紹：無按鈕
-                          btnHtml = `<span class="text-success fw-bold">已報到</span>`;
+                          // 狀態文字修正為「待介紹」，無按鈕
+                          btnHtml = `<span class="text-success fw-bold">待介紹</span>`;
                       } else {
                           // 已完成
                           rowClass += " arrived";
@@ -273,11 +285,15 @@
     renderLists();
   }
 
+  // ★★★ 核心修正：防閃爍與即時更新 ★★★
   function toggleStatus(rowIndex, type) {
-    if(isProcessing) return;
+    if(isProcessing) return; // 鎖定
+    
+    // 1. 鎖定自動更新
+    if(timer) clearInterval(timer);
     isProcessing = true;
 
-    // Optimistic Update
+    // 2. 本地預判更新 (Optimistic UI)
     var target = allGuests.find(g => g.rowIndex == rowIndex);
     if (target) {
         if (type === "CHECKIN") { 
@@ -286,18 +302,24 @@
         } 
     }
     
+    // 3. 立即重繪
     saveCollapseState();
     renderLists();
 
+    // 4. 發送請求 -> 成功後 -> 延遲 2.5 秒再解鎖
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "receptionAction", rowIndex: rowIndex, type: type }) })
     .then(() => {
-        // 等待寫入後重新整理
+        // 關鍵延遲：等待 Google Sheet 寫入完成
         setTimeout(() => {
-            isProcessing = false;
-            manualUpdate();
-        }, 1500);
+            isProcessing = false; // 解鎖
+            fetchData(); // 重新拉取確認
+            startTimer(); // 重啟 Timer
+        }, 2500);
     })
-    .catch(() => { isProcessing = false; });
+    .catch(() => { 
+        isProcessing = false; 
+        startTimer();
+    });
   }
 
   function addNew() {
@@ -312,7 +334,7 @@
         .then(() => {
             alert("新增成功！");
             document.getElementById('new-job').value=""; document.getElementById('new-name').value=""; 
-            manualUpdate(); 
+            fetchData(); // 這裡不需要防閃爍，因為是新增
             btn.innerText = orgText; btn.disabled = false;
         });
     }
