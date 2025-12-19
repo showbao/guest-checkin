@@ -10,33 +10,39 @@
     .checkin-card { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 600px; width: 100%; text-align: center; }
     .emoji-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
     
-    /* 響應式字體 */
+    /* 響應式字體優化 (與首頁邏輯一致) */
     .main-title { 
         font-weight: 800; color: #333; margin-bottom: 5px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        font-size: clamp(1.5rem, 5vw, 2.5rem); 
+        /* 讓字體在 24px 到 48px 之間自動縮放 */
+        font-size: clamp(1.5rem, 6vw, 3rem);
+        line-height: 1.2;
     }
     .sub-title { 
         font-weight: normal; color: #666; margin-bottom: 30px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        font-size: clamp(1rem, 3.5vw, 1.5rem); 
+        /* 讓字體在 16px 到 24px 之間自動縮放 */
+        font-size: clamp(1rem, 4vw, 1.5rem); 
     }
     
     .form-control-lg { background-color: #f0f2f5; border: none; border-radius: 12px; padding: 15px; font-size: 1.1rem; text-align: center; margin-bottom: 15px; }
-    .btn-submit { background: #000; color: white; border-radius: 12px; padding: 15px; font-weight: bold; font-size: 1.2rem; width: 100%; margin-top: 20px; }
+    .btn-submit { background: #000; color: white; border-radius: 12px; padding: 15px; font-weight: bold; font-size: 1.2rem; width: 100%; margin-top: 20px; transition: transform 0.1s; }
+    .btn-submit:active { transform: scale(0.98); }
     #success-msg { display: none; margin-top: 20px; color: #198754; font-weight: bold; font-size: 1.2rem; }
   </style>
 </head>
 <body>
   <div class="checkin-card">
     <span class="emoji-icon">👋</span>
-    <h1 class="main-title" id="school-name">歡迎蒞臨</h1>
-    <h2 class="sub-title" id="event-name">活動簽到</h2>
+    <h1 class="main-title" id="school-name">載入中...</h1>
+    <h2 class="sub-title" id="event-name">活動載入中...</h2>
+    
     <input type="text" id="input-job" class="form-control form-control-lg" placeholder="職稱 (如：董事長)">
     <input type="text" id="input-name" class="form-control form-control-lg" placeholder="姓名">
     <button onclick="submitCheckIn()" class="btn btn-submit" id="btn-submit">簽到</button>
     <div id="success-msg">🎉 簽到成功！歡迎您！</div>
   </div>
+
 <script>
   // ⚠️⚠️⚠️ 記得換成最新的 GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
@@ -46,8 +52,13 @@
   function fetchSettings() {
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getSettings" }) })
     .then(res => res.json()).then(json => {
-        if(json.schoolName) document.getElementById('school-name').innerText = "歡迎蒞臨" + json.schoolName;
+        // 🔥 修正：直接讀取 sheet 內容，不亂加「歡迎蒞臨」
+        if(json.schoolName) document.getElementById('school-name').innerText = json.schoolName;
         if(json.eventName) document.getElementById('event-name').innerText = json.eventName;
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        document.getElementById('school-name').innerText = "歡迎蒞臨"; // 萬一連線失敗的備案
     });
   }
 
@@ -55,8 +66,11 @@
     var job = document.getElementById('input-job').value.trim();
     var name = document.getElementById('input-name').value.trim();
     var btn = document.getElementById('btn-submit'); var msg = document.getElementById('success-msg');
+    
     if (!name) { alert("請輸入您的姓名"); return; }
+    
     btn.disabled = true; btn.innerText = "處理中...";
+    
     // 自助簽到 (Source=GUEST)
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "guestCheckIn", title: job, name: name, isReception: false }) })
     .then(res => res.json()).then(json => {
@@ -66,7 +80,14 @@
                 document.getElementById('input-job').value = ""; document.getElementById('input-name').value = "";
                 btn.disabled = false; btn.innerText = "簽到"; btn.style.display = 'block'; msg.style.display = 'none';
             }, 2000);
-        } else { alert("錯誤：" + json.message); btn.disabled = false; btn.innerText = "簽到"; }
+        } else { 
+            alert("錯誤：" + json.message); 
+            btn.disabled = false; btn.innerText = "簽到"; 
+        }
+    })
+    .catch(err => {
+        alert("連線錯誤，請重試");
+        btn.disabled = false; btn.innerText = "簽到";
     });
   }
 </script>
