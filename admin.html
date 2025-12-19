@@ -10,7 +10,6 @@
     body { background: #f4f4f4; padding: 20px; font-family: "Microsoft JhengHei", sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 800px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     
-    /* 登入與標題 */
     #login-box { background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); max-width: 450px; width: 100%; margin: 0 auto; text-align: center; }
     .school-header { font-weight: 700; color: #6c757d; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1rem, 4vw, 1.2rem); text-align: center; }
     .event-main-title { font-weight: 800; color: #212529; text-align: center; margin: 10px 0 20px 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.8rem, 6vw, 3rem); }
@@ -29,13 +28,12 @@
     .search-box:focus { border-color: #333; outline: none; }
     #toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
 
-    /* === VIP 卡片樣式 === */
+    /* VIP 卡片 */
     .vip-card {
         background: white; border-radius: 12px; padding: 15px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee;
         display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 10px; transition: all 0.3s;
-        height: 100%; /* 確保同列等高 */
+        margin-bottom: 10px; transition: all 0.3s; height: 100%;
     }
     .vip-card.is-done { background: #f9f9f9; opacity: 0.6; }
     .vip-card.is-done .vip-name, .vip-card.is-done .vip-job { text-decoration: line-through; color: #999; }
@@ -47,15 +45,15 @@
     .vip-btn { padding: 8px 20px; border-radius: 50px; border: none; font-size: 0.95rem; cursor: pointer; font-weight: bold; min-width: 90px; transition: transform 0.1s;}
     .vip-btn:active { transform: scale(0.95); }
     
-    .btn-vip-checkin { background: #dc3545; color: white; } /* 紅色待報到 */
-    .btn-vip-intro { background: #198754; color: white; box-shadow: 0 4px 10px rgba(25,135,84,0.3); } /* 綠色介紹 */
+    .btn-vip-checkin { background: #dc3545; color: white; }
+    .btn-vip-intro { background: #198754; color: white; box-shadow: 0 4px 10px rgba(25,135,84,0.3); }
     
     .vip-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 15px; flex-shrink: 0; }
     .dot-red { background: #dc3545; }
     .dot-green { background: #198754; box-shadow: 0 0 5px #198754; }
     .dot-gray { background: #ccc; }
 
-    /* 分區標題 (可點擊收合) */
+    /* 分區標題 */
     .section-header { 
         padding: 12px 20px; background: #e9ecef; font-weight: bold; color: #555; font-size: 1.1rem;
         display: flex; justify-content: space-between; align-items: center;
@@ -71,7 +69,7 @@
 
     .dash-group-title { font-size: 1rem; color: #333; margin: 15px 5px 10px 5px; font-weight: 900; border-bottom: 2px solid #eee; padding-bottom: 5px;}
 
-    /* === 現場報到卡片 (彈窗用) === */
+    /* 現場報到卡片 */
     .guest-card { 
         border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; 
         border: none !important; box-shadow: 0 0 0 1px #e0e0e0, 0 2px 4px rgba(0,0,0,0.05); 
@@ -93,7 +91,6 @@
     .btn-ok { background: #198754; color: white; border: none; padding: 0 15px; border-radius: 10px; font-size: 16px; cursor: pointer; height: 40px; font-weight: bold; flex-shrink: 0;}
     .btn-undo { background: #ffc107; color: #000; border: none; padding: 0 10px; border-radius: 10px; font-size: 14px; cursor: pointer; height: 40px; flex-shrink: 0;}
 
-    /* Modal Header */
     .modal-header { background: #212529; color: white; border-bottom: none; }
     .btn-close-white { filter: invert(1); }
 
@@ -155,30 +152,41 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ⚠️⚠️⚠️ 記得確認 GAS 網址 ⚠️⚠️⚠️
+  // ⚠️⚠️⚠️ GAS 網址 ⚠️⚠️⚠️
   const API_URL = "https://script.google.com/macros/s/AKfycbw62YC7Q03CC-YL_UyBKR4JXfP_cU3OIiswA9LlHhKLIS1LJrCg2DBT441eaE880C05BA/exec";
   
   var PASSWORD = ""; var timer = null; var localData = []; var levelNames = {}; var guestModal;
-  var isProcessing = false; // 寫入鎖定
-  
-  // 🔥 狀態記憶 (預設值：已到=開, 待報到=關, 已介紹=關)
+  var isProcessing = false; 
   var sectionStates = { active: true, pending: false, done: false };
 
   document.addEventListener("DOMContentLoaded", function() {
     guestModal = new bootstrap.Modal(document.getElementById('guestModal'));
     var storedPwd = sessionStorage.getItem('host_password');
-    if (storedPwd) { document.getElementById('pwd').value = storedPwd; setTimeout(manualLogin, 100); }
+    if (storedPwd) { 
+        document.getElementById('pwd').value = storedPwd; 
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        manualLogin(); 
+    }
   });
 
   function manualLogin() {
     PASSWORD = document.getElementById('pwd').value;
-    var btn = document.querySelector('.btn-login'); btn.innerText = "驗證中..."; btn.disabled = true;
+    var btn = document.querySelector('.btn-login'); 
+    if(btn && document.getElementById('login-box').style.display !== 'none') {
+        btn.innerText = "驗證中..."; btn.disabled = true;
+    }
     
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
+      if(btn) { btn.innerText = "進入系統"; btn.disabled = false; }
+
       if(json.status === "error") { 
-        alert("登入失敗：" + json.message); btn.innerText = "進入系統"; btn.disabled = false;
-        sessionStorage.removeItem('host_password'); return; 
+        document.getElementById('login-box').style.display = 'block';
+        document.getElementById('main-app').style.display = 'none';
+        alert("登入失敗：" + json.message); 
+        sessionStorage.removeItem('host_password'); 
+        return; 
       }
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('main-app').style.display = 'block';
@@ -204,15 +212,13 @@
   function manualUpdate() { fetchData(); startTimer(); }
   
   function fetchData() {
-    if(isProcessing) return; // 鎖定中不更新
-
-    // 🔥 更新前先紀錄目前的收合狀態
+    if(isProcessing) return; 
     saveCollapseState();
 
     var statusLabel = document.getElementById('last-update'); statusLabel.innerText = "更新中...";
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getHostList", password: PASSWORD }) })
     .then(res => res.json()).then(json => {
-      if(isProcessing) return; // 二次檢查
+      if(isProcessing) return;
 
       if(json.status === "error") { return; } 
       localData = json.data; 
@@ -224,7 +230,6 @@
     });
   }
 
-  // 紀錄收合狀態的函式
   function saveCollapseState() {
       var elActive = document.getElementById('collapse-active');
       var elPending = document.getElementById('collapse-pending');
@@ -235,13 +240,9 @@
       if(elDone) sectionStates.done = elDone.classList.contains('show');
   }
   
-  // ==========================================
-  // 1. 主畫面渲染：VIP 名單 (三區塊分流)
-  // ==========================================
   function renderMainVIPs() {
       var list = document.getElementById('list');
       var keyword = document.getElementById('vip-search').value.toLowerCase().trim();
-      
       var vipData = localData.filter(d => d.source !== 'GUEST');
       if (keyword) {
           vipData = vipData.filter(d => d.name.toLowerCase().includes(keyword) || d.title.toLowerCase().includes(keyword));
@@ -252,14 +253,9 @@
       var doneData = vipData.filter(d => d.status === "已介紹");
 
       var html = "";
-
-      // 依照 sectionStates 決定是否加上 "show" class
       var showActive = sectionStates.active ? "show" : "";
       var showPending = sectionStates.pending ? "show" : "";
       var showDone = sectionStates.done ? "show" : "";
-      
-      // header 如果展開要加上 active-zone 樣式 (或是保持 header 恆定樣式亦可)
-      // 這裡僅針對 "已到現場" 加上特殊色 header
       
       html += createSectionHtml("active", "📣 已到現場 (待介紹)", activeData, showActive, "active-zone");
       html += createSectionHtml("pending", "🛑 待報到 (尚未到校)", pendingData, showPending, "");
@@ -269,9 +265,7 @@
   }
 
   function createSectionHtml(type, title, data, showClass, headerClass) {
-      // 為了正確顯示箭頭方向，如果沒 show 則 header 加上 collapsed class
       var collapsedState = showClass ? "" : "collapsed";
-      
       var count = data.length;
       var html = `
         <div class="section-header ${headerClass} ${collapsedState}" data-bs-toggle="collapse" data-bs-target="#collapse-${type}" onclick="saveCollapseState()">
@@ -284,7 +278,6 @@
       if(data.length === 0) {
           html += `<div class="text-center p-3 text-muted">無資料</div>`;
       } else {
-          // 排序: 等級高->低 > 報到時間早->晚
           data.sort((a, b) => {
               var lvlA = a.originLevel || 0; var lvlB = b.originLevel || 0;
               if (lvlA !== lvlB) return lvlB - lvlA;
@@ -317,7 +310,7 @@
       } else if (item.status === "待介紹") {
           dotClass = "dot-green";
           btnHtml = `<button class="vip-btn btn-vip-intro" onclick="vipAction(${item.rowIndex}, 'DONE')">待介紹</button>`;
-      } else { // 已介紹
+      } else { 
           dotClass = "dot-gray";
           cardClass += " is-done";
           btnHtml = `<small class="text-muted fw-bold">已完成</small>`;
@@ -337,10 +330,9 @@
       </div>`;
   }
 
-  // ★★★ VIP 動作處理 (含防閃爍) ★★★
   function vipAction(rowIndex, actionType) {
       if(timer) clearInterval(timer);
-      isProcessing = true; // 鎖定
+      isProcessing = true; 
 
       var target = localData.find(d => d.rowIndex == rowIndex);
       if (!target) return;
@@ -352,7 +344,6 @@
           target.status = "已介紹";
       }
 
-      // 更新前先存狀態
       saveCollapseState();
       renderMainVIPs();
 
@@ -365,19 +356,16 @@
       })
       .then(() => {
           setTimeout(() => {
-             isProcessing = false; // 解鎖
+             isProcessing = false; 
              fetchData(); 
              startTimer(); 
-          }, 1500); 
+          }, 2500); 
       })
       .catch(err => {
           console.error(err); alert("連線異常"); isProcessing = false; startTimer();
       });
   }
 
-  // ==========================================
-  // 2. 彈窗渲染：現場報到 (Guest Modal)
-  // ==========================================
   function openGuestModal() {
       renderGuestModal();
       guestModal.show();
@@ -404,7 +392,6 @@
       if(guestData.length === 0) {
           html = "<div class='text-center p-4 text-muted'>無現場報到名單</div>";
       } else {
-          // 加入 row 容器
           html += `<div class="row g-2">`;
           guestData.forEach(item => {
             var isDone = item.status === "已介紹";
@@ -414,7 +401,6 @@
                 ? `<div class="btn-pin s-level-${pLevel}" onclick="cycleGuestPriority(${item.rowIndex})">★</div><button class="btn-ok" onclick="markGuestDone(${item.rowIndex})">介紹</button>` 
                 : `<button class="btn-undo" onclick="undoGuest(${item.rowIndex})">↩️ 回復</button>`;
             
-            // 加入 col-md-6 容器，實現電腦版並排
             html += `
             <div class="col-12 col-md-6">
                 <div class="guest-card level-${pLevel} ${isDone ? 'done' : ''}">
@@ -424,7 +410,7 @@
                 </div>
             </div>`;
           });
-          html += `</div>`; // End row
+          html += `</div>`; 
       }
       list.innerHTML = html;
   }
